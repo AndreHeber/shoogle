@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <style>
+      h1, p, div { text-align: center; }
+      html       { background: #fffffe; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Welcome to the Simple Chat. Test</h2>
+
+      <div class="well">
+        <div id="chat">
+          <ul>
+            <li v-for="message in messages">{{ message.text }}</li>
+          </ul>
+          <form id="input" v-on:submit.prevent="sendMessage">
+            <input v-model="newMessage">
+            <input type="submit" value="Send">
+          </form>
+        </div>
+      </div>
+
+      <div class="well">
+      <h2>Login for private Chat</h2>
+        <div id="login">
+          <form id="login-form" v-on:submit.prevent="tryLogin">
+            <input v-model="username" placeholder="username"> <br>
+            <input type="password" v-model="password" placeholder="password"> <br>
+            <input type="submit" value="{{loginButtonValue}}">
+            <input type="checkbox" v-model="keep_logged_in">Keep logged in<br>
+            <button v-if="loginButtonValue != 'Log out'" v-on:click.prevent="register">Register</button> <br>
+          </form>
+          &nbsp;<br>
+          Status: {{status}}
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+    <script src="/client/client.js"></script>
+    <script src="/client/authentification.js"></script>
+  </body>
+</html>
