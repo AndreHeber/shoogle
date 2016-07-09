@@ -5,6 +5,7 @@ var io = require('socket.io')(server);
 var logger = require('./server/logging');
 var pool = require('./server/database')(logger, startServer);
 var auth = require('./server/authentication')(io, pool, logger);
+var search = require('./server/search')(io, pool, logger, auth);
 
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname+'/client.html'));

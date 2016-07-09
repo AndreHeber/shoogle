@@ -1,5 +1,3 @@
-var socket = io();
-
 socket.on('login user', function(data) {
   console.log('data: ' + data);
   if (data == 'login ok') {
@@ -25,14 +23,41 @@ socket.on('register user', function(data) {
   } else {}
 });
 
+var token = db.getToken(function (token) {
+  if ( token ) {
+    socket.emit('login token', token);
+    console.log('transmit token');
+  } else {
+    console.log('no token');
+  }
+});
+
+socket.on('login token', function(data) {
+  if (data == 'login ok') {
+    vmLogin.status = 'logged in';
+    vmLogin.loginButtonValue = 'Log out';
+  }else if (data == 'token invalid') {
+    vmLogin.status = 'logged out';
+    vmLogin.loginButtonValue = 'Login';
+  } else {
+    console.log(data);
+    vmLogin.status = 'wrong token';
+    vmLogin.loginButtonValue = 'Login';
+  }
+});
+
+socket.on('store token', function(data) {
+  db.addToken(data);
+  console.log('store token');
+});
+
 var vmLogin = new Vue({
   el: '#login',
   data: {
     username: '',
     password: '',
     status: 'logged out',
-    loginButtonValue: 'Login',
-    keep_logged_in: true
+    loginButtonValue: 'Login'
   },
   methods: {
     register: function() {
@@ -46,6 +71,7 @@ var vmLogin = new Vue({
       } else {
         socket.emit('logout user', {username: this.username});
         this.status = 'logged out';
+        db.deleteToken();
         this.loginButtonValue = 'Login';
       }
     }

@@ -2,17 +2,23 @@
 <html>
   <head>
     <title>Test</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <style>
-      h1, p, div { text-align: center; }
-      html       { background: #fffffe; }
+      h1, p { text-align: center; color: #525252; font-family: 'Source Sans Pro', sans-serif; font-weight: 100; }
+      h2 { font-size: 1.4em; color: #525252; font-family: 'Source Sans Pro', sans-serif; font-weight: 100; text-align: center; }
+      html, body { background: #fffffe; height: 100%; margin: 0; padding: 0; }
+      .container, .row { height: 100%; }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h2>Welcome to the Simple Chat. Test</h2>
+    <div id="map" style="height: 100%; z-index: 0; position: fixed;"></div>
 
-      <div class="well">
+    <div class="container" style="width: 100%; height: 0; z-index: 10; position: fixed; top: 0; left: 0; ">
+
+      <!--
+      <div class="well" style="position: fixed; top: 0; align=center">
         <div id="chat">
           <ul>
             <li v-for="message in messages">{{ message.text }}</li>
@@ -23,25 +29,65 @@
           </form>
         </div>
       </div>
+      -->
 
-      <div class="well">
-      <h2>Login for private Chat</h2>
-        <div id="login">
-          <form id="login-form" v-on:submit.prevent="tryLogin">
-            <input v-model="username" placeholder="username"> <br>
-            <input type="password" v-model="password" placeholder="password"> <br>
-            <input type="submit" value="{{loginButtonValue}}">
-            <input type="checkbox" v-model="keep_logged_in">Keep logged in<br>
-            <button v-if="loginButtonValue != 'Log out'" v-on:click.prevent="register">Register</button> <br>
+      <div class="row">
+
+        <!-- left menu start -->
+        <div class="col-lg-2" style="height: 430px; background-color: rgba(250, 250, 250, 1.0); border: 0;">
+
+          <h2>Search</h2>
+          <div id="search">
+            <form v-on:submit.prevent="searchItem" class="form-group" style="margin: 5px;">
+              <input v-model="search" type="text" class="form-control" id="inputSearch" placeholder="Search for books, etc...">
+              <button v-on:click.prevent="searchItem" type="submit" class="btn btn-default" style="margin-top: 10px;">Search</button>
+            </form>
+          </div>
+
+          <hr />
+
+          <h2>Login</h2>
+          <div id="login">
+          <form v-on:submit.prevent="tryLogin" class="form-group" style="margin: 5px;">
+            <label for="inputEmail" style="margin: 5px;">Email address</label>
+            <input v-model="username" type="email" class="form-control" id="inputEmail" placeholder="Email">
+            <label for="inputPassword" style="margin: 5px; margin-top: 10px;">Password</label>
+            <input v-model="password" type="password" class="form-control" id="inputPassword" placeholder="Password">
+            <input value="{{loginButtonValue}}" type="submit" class="btn btn-default" style="margin-top: 10px;">
+            <button v-if="loginButtonValue != 'Log out'" v-on:click.prevent="register" type="button" class="btn btn-default" style="margin-top: 10px;">Register</button>
           </form>
           &nbsp;<br>
           Status: {{status}}
+          </div>
+
         </div>
+        <!-- left menu end -->
+
+        <div class="col-lg-2"></div>
+
+        <div class="col-lg-1"></div>
+        <div class="well col-lg-2" style="background-color: rgba(255, 255, 255, 0.1); border: 0;">
+          <div>
+            <h1 style="color: #525252; opacity: 1.0; font-family: 'Source Sans Pro', sans-serif; font-weight: 100;">
+              Shoogle
+            </h1>
+          </div>
+        </div>
+        <div class="col-lg-1"></div>
+
+        <div class="col-lg-4"></div>
       </div>
+
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/1.4.1/dexie.min.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=initMap"></script>
     <script src="/client/client.js"></script>
+    <script src="/client/database.js"></script>
     <script src="/client/authentification.js"></script>
+    <script src="/client/gmaps.js"></script>
+    <script src="/client/search.js"></script>
   </body>
 </html>

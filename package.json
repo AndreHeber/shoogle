@@ -11,6 +11,7 @@
   "author": "Andre Heber",
   "license": "ISC",
   "dependencies": {
+    "async-waterfall": "^0.1.5",
     "bcrypt-nodejs": "0.0.3",
     "express": "^4.14.0",
     "njwt": "^0.3.1",
