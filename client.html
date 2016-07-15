@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Test</title>
+    <title>Shoogle</title>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
@@ -34,7 +34,7 @@
       <div class="row">
 
         <!-- left menu start -->
-        <div class="col-lg-2" style="height: 430px; background-color: rgba(250, 250, 250, 1.0); border: 0;">
+        <div class="col-lg-2" style="height: 560px; background-color: rgba(250, 250, 250, 1.0); border: 0;">
 
           <h2>Search</h2>
           <div id="search">
@@ -58,6 +58,14 @@
           </form>
           &nbsp;<br>
           Status: {{status}}
+          </div>
+
+          <hr />
+
+          <h2>Profile</h2>
+          <div id="profile">
+          <button v-on:click.prevent="setLocation" class="btn btn-default" style="margin-top: 10px;">{{btnText}}</button>
+          {{status}}
           </div>
 
         </div>
@@ -89,5 +97,6 @@
     <script src="/client/authentification.js"></script>
     <script src="/client/gmaps.js"></script>
     <script src="/client/search.js"></script>
+    <script src="/client/profile.js"></script>
   </body>
 </html>

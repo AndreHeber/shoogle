@@ -1,0 +1,1232 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"ca",
+				"callback"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"for",
+				"form	Tag"
+			],
+			[
+				"AS",
+				"ASFLAGS"
+			],
+			[
+				"c",
+				"callback"
+			],
+			[
+				"tr",
+				"triggerLimit"
+			],
+			[
+				"timedCallbacks_",
+				"timedCallback_RegisterCallback"
+			],
+			[
+				"time",
+				"timedCallbacks"
+			],
+			[
+				"alte",
+				"alternate"
+			],
+			[
+				"alt",
+				"alternate"
+			],
+			[
+				"bloc",
+				"blocktype"
+			],
+			[
+				"start",
+				"start_adress"
+			],
+			[
+				"_For",
+				"_FormatString"
+			],
+			[
+				"in",
+				"input"
+			],
+			[
+				"inc",
+				"include"
+			],
+			[
+				"Edge",
+				"EdgeBufferReadIndex"
+			],
+			[
+				"qua",
+				"quali_stat"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "project.sublime-project",
+			"settings":
+			{
+				"buffer_size": 352,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client.html",
+			"settings":
+			{
+				"buffer_size": 4450,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/search.js",
+			"settings":
+			{
+				"buffer_size": 226,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "// User shall not have two locations with same name\n\nvar runInSeries = require('async-waterfall');\n\nmodule.exports = function (io, db, logger, auth) {\n\n  function listen(socket) {\n    var dbConnection, dbDone;\n    \n    function search (item) {\n\n      function sendFindings(findings, callback) {\n        socket.emit('search item', findings);\n        callback();\n      }\n\n      runInSeries([\n        db.createConnection,\n        (con, done, cb) => {dbConnection = con; dbDone = done; cb(); },\n        (cb) => { db.searchItem(item, cb) },\n        sendFindings\n      ], function(err, result) {\n        if (err) throw err;\n        dbDone();\n      });\n      logger.log('info', 'search for: ' + item);\n    }\n\n    function addLocation(clientData) {\n      var dbConnection, dbDone, user;\n\n      runInSeries([\n        (cb) => { auth.verifyUser(clientData.token.token, cb); },\n        (username, cb) => {user = username; cb(); },\n        db.createConnection,\n        (con, done, cb) => {dbConnection = con; dbDone = done; cb(); },\n        (cb) => { db.getUser(user, dbConnection, cb); },\n        (userData, cb) => { db.addLocation(userData.id, clientData, dbConnection, cb); }\n      ], function(err, result) {\n        if (err) throw err;\n        logger.log('info', 'location for user ' + user + ' added');\n        dbDone();\n      });\n    }\n\n    socket.on('search item', search);\n    socket.on('add location', addLocation);\n  }\n\n  io.on('connection', listen);\n}\n",
+			"file": "server/search.js",
+			"file_size": 1495,
+			"file_write_time": 131127442506233560,
+			"settings":
+			{
+				"buffer_size": 1450,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/profile.js",
+			"settings":
+			{
+				"buffer_size": 483,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/authentification.js",
+			"settings":
+			{
+				"buffer_size": 2172,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/database.js",
+			"settings":
+			{
+				"buffer_size": 490,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/makefile",
+			"settings":
+			{
+				"buffer_size": 5633,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/Sandboxes/mc1/ASW/bcandl.c",
+			"settings":
+			{
+				"buffer_size": 68070,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/Sandboxes/mc1/ASW/bdiagcom.c",
+			"settings":
+			{
+				"buffer_size": 40908,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "/*\n------------------------------------------------------------------------------\n\n                                Visu-IT!\n\n                     Data Declaration System (DDS)\n\n                           - Source export -\n\n\n------------------------------------------------------------------------------\nDDS-Version                    4.2.0\nComponent-Version              Build<000125.03>\n \n------------------------------------------------------------------------------\nFile Name                      bcandl.gh\nCreation Date                  15 Jul 2014, 15:51:09\n\n------------------------------------------------------------------------------\n$Log$\n\n------------------------------------------------------------------------------\nProject                        TA2000\nNumber                         -\nStructure                      PL\nSerial Nr.                     L10\n\n------------------------------------------------------------------------------\nOption Project                 Q:\\p_R96\\L10\\mc1\\DDS\nOption Directory               Q:\\p_R96\\L10\\mc1\\DDS\\srce\nOption All                     true\nOption Files                   -\nOption ExceptFiles             poubelle.h\n                           fcdslib.h\nOption AllSubSystems           false\nOption SubSystems              -\nOption ExceptSubSystems        -\nOption DeleteEmptyFiles        false\nOption OrderMode               NONE (0)\nOption SectionPragmaSyntax     START_WITH_SECOND (0)\nOption HexadecimalInit         false\nOption OldVolatilePlacement    false\nOption EntityStatistics        false\nOption SuppressFileHeaderGen.  false\nOption SuppressDefaultPoitnerInit false\n\n------------------------------------------------------------------------------\n*/\n#ifndef BCANDL_GH\n#define BCANDL_GH\n\n#ifndef	_online\n#define	_online\n#endif\n#ifndef	_param\n#define	_param\n#endif\n#ifndef	_axis\n#define	_axis\n#endif\n#ifndef	_map\n#define	_map\n#endif\n\n\n#include	\"BaseTyp.h\"\n\n#define	CAN250 0x00\n#define	CAN500 0x01           TSEG2  TSEG1  SJW  BRP\n#define	CAN_BTR_250 0x2b02 -> 0010 | 1011 | 00 | 00 0010\n#define	CAN_BTR_500 0x2b42 -> 0010 | 1011 | 01 | 00 0010\n                    0x4901 -> 0100 | 1001 | 00 | 00 0001\n\n                see CPS                \nFosc = 16MHz -> Prescaler 2 = 8 MHz -> BRP + 1 = 4 MHz -> SJW + 1 + TSEG1 + 1 + TSEG2 + 1 = 16 -> 0.250 MHz\n\n0x4900\n0x3940\n0x2b00\n0x2a40\n\n#define	ENABLE_ITCAN XP0IE\nextern _online UNSWORD RF2_Bcanit_state;\nextern const _param UNSBYTE CU1_CAN_baudrate;\n\n#endif\n\n",
+			"file": "/D/Sandboxes/mc1/ASW/bcandl.gh",
+			"file_size": 2209,
+			"file_write_time": 131039062720370883,
+			"settings":
+			{
+				"buffer_size": 2461,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Calibration/R94R3010.a2l",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "D:\\Tools\\DQa2lCompareTool\\DQa2lCompareTool.bat MKS \"{1}\" \"{2}\" \"{3}\" \"{4}\"",
+			"settings":
+			{
+				"buffer_size": 74,
+				"line_ending": "Windows",
+				"name": "D:\\Tools\\DQa2lCompareTool\\DQa2lCompareTool.bat MKS"
+			}
+		},
+		{
+			"file": "/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/asap2_tools/opt/a2l_updater.ini",
+			"settings":
+			{
+				"buffer_size": 288,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "cmd /C \"attrib\" -r ..\\Calibration\\R94R3010.a2l\n..\\Tool\\asap2_tools\\bin\\ASAP2Updater.exe -I ..\\Calibration\\R94R3010.a2l -A ..\\Calibration\\R94R3010.i3e -O ..\\Calibration\\R94R3010.a2l -T ..\\Tool\\asap2_tools\\opt\\a2l_updater.ini",
+			"settings":
+			{
+				"buffer_size": 223,
+				"line_ending": "Windows",
+				"name": "cmd /C \"attrib\" -r ..\\Calibration\\R94R3010.a2l"
+			}
+		},
+		{
+			"file": "/D/Sandboxes/mc1/ASW/ycalsys.c",
+			"settings":
+			{
+				"buffer_size": 34854,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "server/database.js",
+			"settings":
+			{
+				"buffer_size": 4033,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 124.0,
+		"last_filter": "toggle me",
+		"selected_items":
+		[
+			[
+				"toggle me",
+				"View: Toggle Menu"
+			],
+			[
+				"mark",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"pack",
+				"Preferences: Browse Packages"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 386.0
+	},
+	"console":
+	{
+		"height": 108.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)",
+			"import urllib.request,os,sys; exec(\"if sys.version_info < (3,) or os.name != 'nt': raise OSError('This code is for Windows ST3 only!')\"); pr='Preferences.sublime-settings'; ip='ignored_packages'; n='Package Control'; s=sublime.load_settings(pr); ig=s.get(ip); ig.append(n); s.set(ip,ig); sublime.save_settings('Preferences.sublime-settings'); pf=n+'.sublime-package'; urllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler())); by=urllib.request.urlopen('https://packagecontrol.io/'+pf.replace(' ','%20')).read(); open(os.path.join(sublime.installed_packages_path(),pf),'wb').write(by); ig.remove(n); s.set(ip,ig); sublime.save_settings(pr); print('Package Control: 3.0.0 upgrade successful!')",
+			"import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/node",
+		"/C/node/client",
+		"/C/node/server"
+	],
+	"file_history":
+	[
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/asap2_tools/opt/a2l_merger.ini",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/makefile",
+		"/C/Users/HeberA/Documents/Visual Studio 2013/Projects/LINK_MAP_Reader/LINK_MAP_Reader/bin/Debug/R94R3010.a2l",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/R94R3010.a2l",
+		"/C/Users/HeberA/Desktop/CANape.INI",
+		"/C/node/.sublime-project",
+		"/C/node/start nginx.bat",
+		"/C/node/start.bat",
+		"/C/node/nginx-1.11.2/conf/nginx.conf",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/target/R94R3010.map",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/bacqloi.err",
+		"/C/Users/HeberA/PortableApps/Sublime Text 3/Data/Packages/User/Preferences.sublime-settings",
+		"/D/Sandboxes/M_eAP_work_old/Source/EcuAl/BldcCtrl/src/BldcCtrl.c",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/BMAIN.ASM",
+		"/D/Tools/Tasking/C167/task70r1/include/C166.H",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/compiler.mk",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/BuildEnv.mk",
+		"/D/Sandboxes/work/Source/a2l.bat",
+		"/D/Sandboxes/work/Source/A2L_MERGER_CONTI_TEST.CFG",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/TA_modifications.a2l",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/asap2_tools/opt/a2l_updater.ini",
+		"/D/Sandboxes/mc1/IF_CCP.A2L",
+		"/D/Sandboxes/mc1/BIN/OUT/R96L1010.a2l",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/REG.DEF",
+		"/D/Tools/Tasking/C167/task70r1/include/REG167CR.H",
+		"/D/Tools/Tasking/C167/task70r1/include/REG166.H",
+		"/D/Tools/Tasking/C167/task70r1/include/REG167CS.H",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/target/R94R3000.hex",
+		"/D/Sandboxes/work/Source/A2L_MERGER_CONTI_LIB.CFG",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/shell.bat",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/utils.mk",
+		"/D/Sandboxes/work/Tool/asap2_tools/opt/a2l_merger.ini",
+		"/C/eclipse/eclipse.ini",
+		"/C/Users/HeberA/Documents/Visual Studio 2013/Projects/FEE Tool for Framework 3.5/FEE Tool for Framework 3.5/bin/Debug/settings.xml",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/acanal.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/bcandl.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ycalsys.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/zconfig.err",
+		"/C/eclipse/plugins/org.eclipse.cdt.core.win32.x86_64_5.4.1.201606062011/META-INF/maven/org.eclipse.cdt/org.eclipse.cdt.core.win32.x86_64/pom.xml",
+		"/C/Users/HeberA/PortableApps/Sublime Text 3/Data/Packages/Default/Preferences.sublime-settings",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/MAPPING.H",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/BCALRTUR.ASM",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/MC1/mc1_opt.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/MC1/mc1_conf.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/BCANDL.C",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/BCANMSG.CNF",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/bbgdtask.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/MC1/dep_opt.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/ACANAL.C",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/ACTLMODD.C",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/WDOG.H",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/BCALCASM.H",
+		"/D/Sandboxes/work/Source/TST/err/tst.err",
+		"/C/eclipse_old/workspace/.metadata/.plugins/org.eclipse.debug.core/.launches/X32 Comment Remover.launch",
+		"/D/Sandboxes/work/Source/target/DQ400.elo",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/cks_calc/CKS_CRC.c",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/Aiscan22/scan22_1.cnf",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/bplatch.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/component.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/err/bplatch.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ECULOC.DEF",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source_before_switch_to_R30/ASW/src/YCALSYS.C",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/METHOD.E",
+		"/C/Users/HeberA/Desktop/keks.c",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/AAFFICHE.C",
+		"/D/WS/PRJ_SW/Source/ECUAL/SVM/src/svm_atic107.c",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/Aiscan22/README.txt",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/component.mk",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/components.def",
+		"/C/Users/HeberA/Documents/Visual Studio 2013/Projects/FEE Tool for Framework 3.5/.travis.yml",
+		"/D/Sandboxes/mc1/ASW - Kopie/BACQVVEH.C",
+		"/D/Sandboxes/mc1/ASW/bacqvveh.c",
+		"/C/tessy/tc1782_common_begin_sim.cmm",
+		"/D/Sandboxes/mc1/BIN/OUT/R96L1010.MAP",
+		"/D/Sandboxes/mc1/ASW - Kopie/ACHGPONT.C",
+		"/D/Sandboxes/mc1/ASW/spec166.h",
+		"/D/Sandboxes/mc1/ASW/aexecseq.c",
+		"/D/Sandboxes/mc1/ASW/def_its.h",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/err/acanccp.lnt",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/PC-Lint.opt",
+		"/D/Sandboxes/mc1/mc1_lint.log",
+		"/D/Sandboxes/mc1/BIN/catalog.tmp",
+		"/D/Sandboxes/mc1/ASW/bovftim.c",
+		"/D/Sandboxes/mc1/BIN/SRC/bovftim.src",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/err/apcrbpas.lnt",
+		"/C/Users/HeberA/Desktop/kkk.PAR",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/err/aaffiche.err",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/aconvert.err",
+		"/D/Sandboxes/mc1/ECULOC.DEF",
+		"/D/Sandboxes/mc1/mc1_conf.def",
+		"/D/Sandboxes/mc1/mc1_opt.def",
+		"/D/Sandboxes/mc1/LOG/TA2000.lg1",
+		"/D/Sandboxes/mc1/ASW - Kopie/METHOD.E",
+		"/D/Sandboxes/mc1/dep_opt.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/target/R96L1010.a66",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/target/R96L1010.a22",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/target/R96L1010.c22",
+		"/D/Sandboxes/mc1/BIN/link_mac.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/target/R96L1010.lnl",
+		"/D/Sandboxes/mc1/ASW/acanal.c",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/err/aaffiche.lnt",
+		"/C/Users/HeberA/PortableApps/ConEmu/ConEmu.xml",
+		"/C/Users/HeberA/Desktop/crc/CKS_CRC.c",
+		"/D/WS/PRJ_MT/Source/Tools/Tessy/LinkerFile/dq400.lsl",
+		"/C/Users/HeberA/Documents/MATLAB/JatcoUD2/DLL/SourceCode/BldcCC/Cfg/BldcCC_Cfg.c",
+		"/C/Users/HeberA/Documents/MATLAB/JatcoUD2/DLL/DLL_BldcCC/DLL_BldcCC.h",
+		"/C/Users/HeberA/Documents/MATLAB/JatcoUD2/DLL/DLL_BldcCC/DLL_BldcCC.c",
+		"/C/Users/HeberA/Documents/MATLAB/JatcoUD2/DLL/SimulationFiles/Simulation.c",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/DDS/component.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/BATM39.ASM",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/component.txt",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/objects.txt",
+		"/D/Sandboxes/mc1/BIN/asw_mac.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/BCALCASM.ASM",
+		"/D/Tools/Tasking/C167/task86r1/etc/reg167cs.def",
+		"/D/Tools/Tasking/C167/task86r1/etc/reg161cs.def",
+		"/D/Tools/Tasking/C167/task86r1/etc/reg.def",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/lst/brstinit.src",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/ACHGPONT.H",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/ACHGPONT - Kopie.CNF",
+		"/D/Sandboxes/mc1/ASW - Kopie/MAPPING.H",
+		"/D/WS/PRJ_MT/Source/Tools/Tessy/pdb.bat",
+		"/D/Sandboxes/work/Source/components.def",
+		"/D/Sandboxes/work/Source/SL/MEMSERVICES/NvM/component.def",
+		"/D/WS/PRJ_MT/Source/ECUAL/SVM/svm_atic107/svm_atic107.pdb",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/hmuist.asm",
+		"/D/Sandboxes/mc1/BIN/OBJ/TA2000.LNL",
+		"/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/ASW/src/mapping.inc"
+	],
+	"find":
+	{
+		"height": 56.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"",
+			"D:\\Sandboxes\\work\\Source"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"CAN250",
+			"CAN_BAUDRATE_250",
+			"RU1_lbaud_rate",
+			"250",
+			"/begin CHARACTERISTIC",
+			"/begin ",
+			"MASFLAGS",
+			"ARFLAGS",
+			"FB",
+			"map",
+			"RU1_timout_abs_information",
+			"SFB_Regulation_ABS_CAN",
+			"CFB",
+			"cfb",
+			"adaptiv",
+			"line",
+			"LNKLIBS",
+			"c_wr_word_cpl_ctl",
+			"AH / HE",
+			"NBR_MSG_MUX_REC",
+			"par",
+			"HEX_CONVERTER",
+			"uid26205",
+			"uid26203",
+			"uid26288",
+			"uid29468",
+			"uid26782",
+			"uid28279",
+			"uid25869",
+			"uid26807",
+			"uid25898",
+			"uid28120",
+			"uidu0734",
+			"idu0734",
+			"$[^u]+idu0734^",
+			"$[^u]idu0734^",
+			"$*uidu0734^",
+			"pragma",
+			"wlib",
+			"lint",
+			"map",
+			"IT_VEH",
+			"INTERRUPT",
+			"_interrupt(",
+			"_interrupt",
+			"inte",
+			"interrupt",
+			"_interrupt",
+			"Interrupt",
+			"EXECUTABLE_HEX",
+			"HEX_CONVERTER",
+			"LNK_COMPONENTS",
+			"LINT_MODULE",
+			"MAKE_PROJECT_LINT",
+			"COMPONENTS",
+			"LNK",
+			"LNK_COMPONENTS",
+			"PROJECT_OUT_FILE",
+			"EXECUTABLE_HEX",
+			"OBJS",
+			"PROLOG",
+			"EPILOG",
+			"ARCH_MODULE",
+			"AR",
+			"BUIL_ENV_CONFIG",
+			"C166_OPT_ASW_ECU",
+			"HEX_CONVERTER",
+			"INCLUDEPATH",
+			"includepath",
+			"_PPA_frm_dsc_80_PSA",
+			"T_X_T3_12",
+			"COMPONENTS",
+			"EXECUTABLE_HEX",
+			"PROJECT_LIB_FILE",
+			"ARCH_PROJECT",
+			"_CUA_Debut_Calib",
+			"@*define",
+			"set",
+			"cc4io",
+			"pocon",
+			"addrsel4",
+			"A166_OPT",
+			"NO_PRJ_PATH",
+			"PRJ_PATH",
+			"PICON",
+			"#include <",
+			"PCLINT_MISRA_OPT_FILE",
+			">",
+			"#include <reg167.h>",
+			"#include <",
+			"OBJS_",
+			"COMP_LIB",
+			"all",
+			"__HHEAP_SIZE",
+			"__NHEAP_SIZE",
+			"__USER_STACK_SIZE",
+			"__SYSTEM_STACK_SIZE",
+			"__PAGE_END",
+			"__PAGE_START",
+			"__PAGE_END",
+			"__PAGE_START",
+			"__USER_STACKS",
+			"__DPP0_ADDR",
+			"stack",
+			"pipe1",
+			"0x7000",
+			"pipe1",
+			"0xd",
+			"rb",
+			"blink_core",
+			"coco",
+			"__PLL_CLC_PDIV_VALUE",
+			"main",
+			"blink_core0_private",
+			"blink",
+			"_start_tc",
+			"_start_tc0",
+			"_start_tc1",
+			"flash.create",
+			"blink_core0_private",
+			"pragma",
+			"cnt",
+			"main..1.cnt",
+			"cnt",
+			"#inc",
+			"line",
+			"toggle",
+			"Fzk_PSpeicher_WarteDruck_kl"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"",
+			"\"",
+			"#include \"reg167.h\"",
+			"###",
+			"AppRom",
+			"AppROM",
+			"Ems_Flag",
+			"",
+			",",
+			"const uint8",
+			"uint8"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "project.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 352,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								352,
+								352
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "client.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4450,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1763,
+								1769
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1328.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "client/search.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 226,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								198,
+								209
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "server/search.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1450,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								179,
+								179
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "client/profile.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 483,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								320,
+								320
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "client/authentification.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2172,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1597,
+								1597
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1672.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "client/database.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 490,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								317,
+								317
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 56.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Source/makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5633,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2893,
+								2893
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3355.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/D/Sandboxes/mc1/ASW/bcandl.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 68070,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								45019,
+								45022
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 67287.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "/D/Sandboxes/mc1/ASW/bdiagcom.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 40908,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								24965,
+								24971
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 47273.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/D/Sandboxes/mc1/ASW/bcandl.gh",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2461,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2336,
+								2336
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2055.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Calibration/R94R3010.a2l",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 74,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								74,
+								74
+							]
+						],
+						"settings":
+						{
+							"auto_name": "D:\\Tools\\DQa2lCompareTool\\DQa2lCompareTool.bat MKS",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "/D/Sandboxes/TA2005_AL4_all/Engineering/Software/Control/Basic/Realization/Tool/asap2_tools/opt/a2l_updater.ini",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 288,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								288,
+								288
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 223,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								223,
+								223
+							]
+						],
+						"settings":
+						{
+							"auto_name": "cmd /C \"attrib\" -r ..\\Calibration\\R94R3010.a2l",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "/D/Sandboxes/mc1/ASW/ycalsys.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 34854,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7082,
+								7085
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 12386.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "server/database.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4033,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2676,
+								2676
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2830.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 46.0
+	},
+	"input":
+	{
+		"height": 56.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": false,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "project.sublime-project",
+	"replace":
+	{
+		"height": 88.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"D:\\Sandboxes\\TA2005_AL4_all\\Engineering\\Software\\Control\\Basic\\Realization\\Source\\makefile"
+			],
+			[
+				"clie",
+				"client.html"
+			],
+			[
+				"pro",
+				"client\\profile.js"
+			],
+			[
+				"au",
+				"client\\authentification.js"
+			],
+			[
+				"html",
+				"client.html"
+			],
+			[
+				"batm",
+				"Source\\ASW\\src\\BATM39.ASM"
+			],
+			[
+				"osa.c",
+				"work\\Source\\SL\\SYSSERVICES\\OSA\\src\\osa.c"
+			],
+			[
+				"svm_at",
+				"work\\Source\\ECUAL\\SVM\\src\\svm_atic107.c"
+			],
+			[
+				"osa",
+				"SL\\SYSSERVICES\\OSA\\src\\osa.c"
+			],
+			[
+				"bldc",
+				"SL\\SYSSERVICES\\Log\\src\\bldc_monitor.c"
+			],
+			[
+				"bldc_mo",
+				"SL\\SYSSERVICES\\Log\\src\\bldc_monitor.c"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 299.0,
+		"last_filter": "get",
+		"selected_items":
+		[
+			[
+				"get",
+				"getToken"
+			],
+			[
+				"svm_atic_dia",
+				"Svm_ATIC107_DiagOffstate"
+			]
+		],
+		"width": 378.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": true,
+	"show_tabs": false,
+	"side_bar_visible": true,
+	"side_bar_width": 189.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

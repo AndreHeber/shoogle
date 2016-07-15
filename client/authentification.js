@@ -23,7 +23,7 @@ socket.on('register user', function(data) {
   } else {}
 });
 
-var token = db.getToken(function (token) {
+var token = db.getToken(function (err, token) {
   if ( token ) {
     socket.emit('login token', token);
     console.log('transmit token');
