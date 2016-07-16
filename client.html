@@ -65,6 +65,7 @@
           <h2>Profile</h2>
           <div id="profile">
           <button v-on:click.prevent="setLocation" class="btn btn-default" style="margin-top: 10px;">{{btnText}}</button>
+          <button v-on:click.prevent="setGeolocation" class="btn btn-default" style="margin-top: 10px;">Set Current Position</button>
           {{status}}
           </div>
 
@@ -91,7 +92,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/1.4.1/dexie.min.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=map.initMap"></script>
     <script src="/client/client.js"></script>
     <script src="/client/database.js"></script>
     <script src="/client/authentification.js"></script>

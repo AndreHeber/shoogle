@@ -13,10 +13,18 @@ var vmProfile = new Vue({
         console.log(err);
         console.log(token);
         if (err) self.status = 'You must be logged in!';
-        else self.status = 'Save Location';
+        else
+        {
+          self.status = 'Save Location';
+          map.addMarker();
+        } 
         // socket.emit('add location', {token: token, name: 'somewhere', latitude: 42.0, longitude: 42.0})
       });
       // this.status = 'bla';
+    },
+    setGeolocation: function () {
+      console.log('set geolocation');
+      map.setGeolocationPosition();
     }
   }
 });
