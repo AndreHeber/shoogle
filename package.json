@@ -4,7 +4,7 @@
   "description": "Google for Sharing",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "./node_modules/jasmine-node/bin/jasmine-node spec",
     "start": "node server.js"
   },
   "keywords": [],
@@ -18,5 +18,8 @@
     "pg": "^6.0.1",
     "socket.io": "^1.4.8",
     "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
   }
 }
