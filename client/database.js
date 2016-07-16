@@ -14,8 +14,8 @@ function initDb() {
   db.getToken = function(callback) {
     var token = dexie.login.get(1, function(token) {
       console.log(token);
-      if (token != 'undefined') callback(0, token);
-      else callback(1, token);
+      if (typeof token === 'undefined') callback(1, token);
+      else callback(0, token);
     });
   }
 
