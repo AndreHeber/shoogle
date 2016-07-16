@@ -3,6 +3,7 @@ socket.on('login user', function(data) {
   if (data == 'login ok') {
     vmLogin.status = 'logged in';
     vmLogin.loginButtonValue = 'Log out';
+    vmLogin.showForm = false;
   } else if (data == 'unknown user') {
     vmLogin.status = 'username incorrect';
     vmLogin.loginButtonValue = 'Login';
@@ -17,6 +18,7 @@ socket.on('register user', function(data) {
   if (data == 'register ok') {
     vmLogin.status = 'logged in';
     vmLogin.loginButtonValue = 'Log out';
+    vmLogin.showForm = false;
   } else if (data == 'username assigned') {
     vmLogin.status = 'user is already registered';
     vmLogin.loginButtonValue = 'Login';
@@ -36,6 +38,7 @@ socket.on('login token', function(data) {
   if (data == 'login ok') {
     vmLogin.status = 'logged in';
     vmLogin.loginButtonValue = 'Log out';
+    vmLogin.showForm = false;
   }else if (data == 'token invalid') {
     vmLogin.status = 'logged out';
     vmLogin.loginButtonValue = 'Login';
@@ -57,7 +60,8 @@ var vmLogin = new Vue({
     username: '',
     password: '',
     status: 'logged out',
-    loginButtonValue: 'Login'
+    loginButtonValue: 'Login',
+    showForm: true
   },
   methods: {
     register: function() {
@@ -73,6 +77,7 @@ var vmLogin = new Vue({
         this.status = 'logged out';
         db.deleteToken();
         this.loginButtonValue = 'Login';
+        vmLogin.showForm = true;
       }
     }
   }

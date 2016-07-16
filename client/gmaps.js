@@ -4,7 +4,8 @@ var map = {
   markers: [],
   settings: {
     center: {lat: 49.446, lng: 11.088},
-    zoom: 16
+    zoom: 16,
+    streetViewControl: false
   },
   initMap: function () {
     this.instance = new google.maps.Map(document.getElementById('map'), this.settings);

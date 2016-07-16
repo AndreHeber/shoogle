@@ -48,13 +48,13 @@
 
           <h2>Login</h2>
           <div id="login">
-          <form v-on:submit.prevent="tryLogin" class="form-group" style="margin: 5px;">
-            <label for="inputEmail" style="margin: 5px;">Email address</label>
-            <input v-model="username" type="email" class="form-control" id="inputEmail" placeholder="Email">
-            <label for="inputPassword" style="margin: 5px; margin-top: 10px;">Password</label>
-            <input v-model="password" type="password" class="form-control" id="inputPassword" placeholder="Password">
-            <input value="{{loginButtonValue}}" type="submit" class="btn btn-default" style="margin-top: 10px;">
-            <button v-if="loginButtonValue != 'Log out'" v-on:click.prevent="register" type="button" class="btn btn-default" style="margin-top: 10px;">Register</button>
+          <form v-on:submit.prevent="tryLogin" class="form-group" style="margin: 5px;" name="loginForm" novalidate>
+            <label v-show="showForm" for="inputEmail" style="margin: 5px;">Email address</label>
+            <input v-show="showForm" v-model="username" type="email" class="form-control" id="inputEmail" placeholder="Email">
+            <label v-show="showForm" for="inputPassword" style="margin: 5px; margin-top: 10px;">Password</label>
+            <input v-show="showForm" v-model="password" type="password" class="form-control" id="inputPassword" placeholder="Password">
+            <input value="{{loginButtonValue}}" type="submit" class="btn btn-default" style="margin-top: 10px;" name="loginBtn">
+            <button v-show="showForm" v-on:click.prevent="register" type="button" class="btn btn-default" style="margin-top: 10px;">Register</button>
           </form>
           &nbsp;<br>
           Status: {{status}}
