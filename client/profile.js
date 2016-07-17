@@ -28,3 +28,8 @@ var vmProfile = new Vue({
     }
   }
 });
+
+socket.on('roles', function (data) {
+    console.log('roles:');
+    console.log(data);
+});

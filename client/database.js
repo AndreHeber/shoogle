@@ -23,4 +23,5 @@ function initDb() {
     dexie.login.delete(1);
   }
 };
+
 initDb();
