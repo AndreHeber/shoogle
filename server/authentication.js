@@ -69,9 +69,7 @@ module.exports = function (io, db, logger) {
         }
 
         function getAndSendUserRoles(username, db, dbCon, callback) {
-            logger.log('info', 'username: ' + username);
             db.getUserRoles(username, dbCon, function (err, roles) {
-                logger.log('info', 'roles: ' + roles[0] + ', ' + roles[1]);
                 socket.emit('roles', roles);
             });
         }

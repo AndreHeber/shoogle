@@ -1,23 +1,49 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>Shoogle</title>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <style>
-      h1, p { text-align: center; color: #525252; font-family: 'Source Sans Pro', sans-serif; font-weight: 100; }
-      h2 { font-size: 1.4em; color: #525252; font-family: 'Source Sans Pro', sans-serif; font-weight: 100; text-align: center; }
-      html, body { background: #fffffe; height: 100%; margin: 0; padding: 0; }
-      .container, .row { height: 100%; }
+        h1,
+        p {
+            text-align: center;
+            color: #525252;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-weight: 100;
+        }
+        
+        h2 {
+            font-size: 1.4em;
+            color: #525252;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-weight: 100;
+            text-align: center;
+        }
+        
+        html,
+        body {
+            background: #fffffe;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container,
+        .row {
+            height: 100%;
+        }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     <div id="map" style="height: 100%; z-index: 0; position: fixed;"></div>
 
     <div class="container" style="width: 100%; height: 0; z-index: 10; position: fixed; top: 0; left: 0; ">
 
-      <!--
+        <!--
       <div class="well" style="position: fixed; top: 0; align=center">
         <div id="chat">
           <ul>
@@ -31,61 +57,89 @@
       </div>
       -->
 
-      <div class="row">
+        <div class="row">
 
-        <!-- left menu start -->
-        <div class="col-lg-2" style="height: 560px; background-color: rgba(250, 250, 250, 1.0); border: 0;">
+            <!-- left menu start -->
+            <div class="col-lg-2" style="height: 560px; background-color: rgba(250, 250, 250, 1.0); border: 0;">
 
-          <h2>Search</h2>
-          <div id="search">
-            <form v-on:submit.prevent="searchItem" class="form-group" style="margin: 5px;">
-              <input v-model="search" type="text" class="form-control" id="inputSearch" placeholder="Search for books, etc...">
-              <button v-on:click.prevent="searchItem" type="submit" class="btn btn-default" style="margin-top: 10px;">Search</button>
-            </form>
-          </div>
+                <h2>Search</h2>
+                <div id="search">
+                    <form v-on:submit.prevent="searchItem" class="form-group" style="margin: 5px;">
+                        <input v-model="search" type="text" class="form-control" id="inputSearch" placeholder="Search for books, etc...">
+                        <button v-on:click.prevent="searchItem" type="submit" class="btn btn-default" style="margin-top: 10px;">Search</button>
+                    </form>
+                </div>
 
-          <hr />
+                <hr />
 
-          <h2>Login</h2>
-          <div id="login">
-          <form v-on:submit.prevent="tryLogin" class="form-group" style="margin: 5px;" name="loginForm" novalidate>
-            <label v-show="showForm" for="inputEmail" style="margin: 5px;">Email address</label>
-            <input v-show="showForm" v-model="username" type="email" class="form-control" id="inputEmail" placeholder="Email">
-            <label v-show="showForm" for="inputPassword" style="margin: 5px; margin-top: 10px;">Password</label>
-            <input v-show="showForm" v-model="password" type="password" class="form-control" id="inputPassword" placeholder="Password">
-            <input value="{{loginButtonValue}}" type="submit" class="btn btn-default" style="margin-top: 10px;" name="loginBtn">
-            <button v-show="showForm" v-on:click.prevent="register" type="button" class="btn btn-default" style="margin-top: 10px;">Register</button>
-          </form>
-          &nbsp;<br>
-          Status: {{status}}
-          </div>
+                <h2>Login</h2>
+                <div id="login">
+                    <form v-on:submit.prevent="tryLogin" class="form-group" style="margin: 5px;" name="loginForm" novalidate>
+                        <label v-show="showForm" for="inputEmail" style="margin: 5px;">Email address</label>
+                        <input v-show="showForm" v-model="username" type="email" class="form-control" id="inputEmail" placeholder="Email">
+                        <label v-show="showForm" for="inputPassword" style="margin: 5px; margin-top: 10px;">Password</label>
+                        <input v-show="showForm" v-model="password" type="password" class="form-control" id="inputPassword" placeholder="Password">
+                        <input value="{{loginButtonValue}}" type="submit" class="btn btn-default" style="margin-top: 10px;" name="loginBtn">
+                        <button v-show="showForm" v-on:click.prevent="register" type="button" class="btn btn-default" style="margin-top: 10px;">Register</button>
+                    </form>
+                    &nbsp;<br> Status: {{status}}
+                </div>
 
-          <hr />
+                <hr />
 
-          <h2>Profile</h2>
-          <div id="profile">
-          <button v-on:click.prevent="setLocation" class="btn btn-default" style="margin-top: 10px;">{{btnText}}</button>
-          <button v-on:click.prevent="setGeolocation" class="btn btn-default" style="margin-top: 10px;">Set Current Position</button>
-          {{status}}
-          </div>
+                <h2>Profile</h2>
+                <div id="profile">
+                    <button v-on:click.prevent="setLocation" class="btn btn-default" style="margin-top: 10px;">{{btnText}}</button>
+                    <button v-on:click.prevent="setGeolocation" class="btn btn-default" style="margin-top: 10px;">Set Current Position</button>                    {{status}}
 
+                    <template v-if="showAdmin">
+                        
+                        <div class="container" style="width: 50%; height: 500; z-index: 10; position: fixed; top: 50px; left: 400px; background-color: rgba(250, 250, 250, 1.0);">
+                            <h2>Users</h2>
+                            If you don't want to update a field (you want to update the username, but not the password), leave the field empty (then the password field should be empty).
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label for="adminInputEmail" style="margin: 5px;">Add User with Email address</label>
+                                    <input v-model="username" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
+                                    <label for="adminInputPassword" style="margin: 5px; margin-top: 10px;">and Password</label>
+                                    <input v-model="password" type="password" class="form-control" id="adminInputPassword" placeholder="Password">
+                                </div>
+                                <button v-on:click.prevent="addUser" class="btn btn-default">Add <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+                            </form>
+                            <div v-for="user in users">
+                                <form class="form-inline">
+                                    <div class="form-group">
+                                        {{user.oldUsername}}
+                                        <label for="adminInputEmail" style="margin: 5px;">Update User with Email address</label>
+                                        <input v-model="user.newUsername" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
+                                        <label for="adminInputPassword" style="margin: 5px; margin-top: 10px;">and Password</label>
+                                        <input v-model="user.newPassword" type="password" class="form-control" id="adminInputPassword" placeholder="Password">
+                                        <button v-on:click.prevent="editUser(user)" class="btn btn-default"><span class="glyphicon glyphicon-save" aria-hidden="true"></span></button>
+                                        <button v-on:click.prevent="deleteUser(user)" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+            </div>
+            <!-- left menu end -->
+
+            <div class="col-lg-2"></div>
+
+            <div class="col-lg-1"></div>
+            <div class="well col-lg-2" style="background-color: rgba(255, 255, 255, 0.1); border: 0;">
+                <div>
+                    <h1 style="color: #525252; opacity: 1.0; font-family: 'Source Sans Pro', sans-serif; font-weight: 100;">
+                        Shoogle
+                    </h1>
+                </div>
+            </div>
+            <div class="col-lg-1"></div>
+
+            <div class="col-lg-4"></div>
         </div>
-        <!-- left menu end -->
-
-        <div class="col-lg-2"></div>
-
-        <div class="col-lg-1"></div>
-        <div class="well col-lg-2" style="background-color: rgba(255, 255, 255, 0.1); border: 0;">
-          <div>
-            <h1 style="color: #525252; opacity: 1.0; font-family: 'Source Sans Pro', sans-serif; font-weight: 100;">
-              Shoogle
-            </h1>
-          </div>
-        </div>
-        <div class="col-lg-1"></div>
-
-        <div class="col-lg-4"></div>
-      </div>
 
     </div>
 
@@ -99,5 +153,6 @@
     <script src="/client/gmaps.js"></script>
     <script src="/client/search.js"></script>
     <script src="/client/profile.js"></script>
-  </body>
+</body>
+
 </html>
