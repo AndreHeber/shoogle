@@ -94,8 +94,8 @@
 
                     <template v-if="showAdmin">
                         
-                        <div class="container" style="width: 50%; height: 500; z-index: 10; position: fixed; top: 50px; left: 400px; background-color: rgba(250, 250, 250, 1.0);">
-                            <h2>Users</h2>
+                        <div class="container" style="width: 70%; height: 500; z-index: 10; position: fixed; top: 50px; left: 400px; background-color: rgba(250, 250, 250, 1.0);">
+                            <h2>Admin Panel</h2>
                             If you don't want to update a field (you want to update the username, but not the password), leave the field empty (then the password field should be empty).
                             <form class="form-inline">
                                 <div class="form-group">
@@ -106,11 +106,12 @@
                                 </div>
                                 <button v-on:click.prevent="addUser" class="btn btn-default">Add <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
                             </form>
+
                             <div v-for="user in users">
                                 <form class="form-inline">
                                     <div class="form-group">
-                                        {{user.oldUsername}}
-                                        <label for="adminInputEmail" style="margin: 5px;">Update User with Email address</label>
+                                        <a v-on:click.prevent="getLocations(user)">{{user.oldUsername}}</a>
+                                        <label for="adminInputEmail" style="margin: 5px;">Update Email address</label>
                                         <input v-model="user.newUsername" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
                                         <label for="adminInputPassword" style="margin: 5px; margin-top: 10px;">and Password</label>
                                         <input v-model="user.newPassword" type="password" class="form-control" id="adminInputPassword" placeholder="Password">
@@ -119,6 +120,38 @@
                                     </div>
                                 </form>
                             </div>
+
+                            <div v-for="location in locations">
+                                <form class="form-inline">
+                                    <div class="form-group">
+                                        <a v-on:click.prevent="getItems(location)">{{location.locationname}}</a>
+                                        <label for="adminInputLocationName" style="margin: 5px;">Location</label>
+                                        <input v-model="location.locationname" type="email" class="form-control" id="adminInputLocationName" placeholder="Locationname">
+                                        <label for="adminInputLatitude" style="margin: 5px; margin-top: 10px;">is at Lat</label>
+                                        <input v-model="location.latitude" type="entry" class="form-control" id="adminInputLatitude" placeholder="Latitude">
+                                        <label for="adminInputLongitude" style="margin: 5px; margin-top: 10px;">and Lng</label>
+                                        <input v-model="location.longitude" type="entry" class="form-control" id="adminInputLongitude" placeholder="Longitude">
+                                        <button v-on:click.prevent="editLocation(location)" class="btn btn-default"><span class="glyphicon glyphicon-save" aria-hidden="true"></span></button>
+                                        <button v-on:click.prevent="deleteLocation(location)" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></i></button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div v-for="item in items">
+                                <form class="form-inline">
+                                    <div class="form-group">
+                                        <label for="adminInputItemName" style="margin: 5px;">Item</label>
+                                        <input v-model="item.name" type="email" class="form-control" id="adminInputItemName" placeholder="Itemname">
+                                        <label for="adminInputDescription" style="margin: 5px; margin-top: 10px;">is a</label>
+                                        <input v-model="item.description" type="entry" class="form-control" id="adminInputDescription" placeholder="Description">
+                                        <label for="adminInputPrice" style="margin: 5px; margin-top: 10px;">with Price</label>
+                                        <input v-model="item.price" type="entry" class="form-control" id="adminInputPrice" placeholder="Price">
+                                        <button v-on:click.prevent="editItem(item)" class="btn btn-default"><span class="glyphicon glyphicon-save" aria-hidden="true"></span></button>
+                                        <button v-on:click.prevent="deleteItem(item)" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></i></button>
+                                    </div>
+                                </form>
+                            </div>
+
                         </div>
                     </template>
                 </div>

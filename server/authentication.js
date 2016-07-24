@@ -256,6 +256,29 @@ module.exports = function (io, db, logger) {
         });
     }
 
+    // verify that user exists and it has the role 'admin'
+    auth.verifyAdmin = function (token, callback) {
+        var user, dbDone;
+        var err = true;
+        var isAdmin = false;
+
+        runInSeries([
+            (cb) =>  { auth.verifyUser(token, cb); },
+            (_user, cb) => { user = _user; db.createConnection(cb); },
+            (con, done, cb) => { dbDone = done; db.getUserRoles(user, con, cb); }
+        ], function (err, roles) {
+            if (err) throw err;
+            for (i=0; i<roles.length; i++) {
+                if (roles[i] == 'admin') {
+                    err = false;
+                    isAdmin = true;
+                    break;
+                }
+            }
+            callback(err, isAdmin);
+        });
+    }
+
     io.on('connection', listen);
 
     return auth;
