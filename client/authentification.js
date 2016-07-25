@@ -70,6 +70,7 @@ function initAuth(self) {
     self.storeToken = function (data) {
         db.addToken(data);
         console.log('store token');
+        socket.removeListener('store token', self.storeToken);
     }
 
     self.login = function () {
@@ -83,6 +84,7 @@ function initAuth(self) {
             db.deleteToken();
             self.vm.loginButtonValue = 'Login';
             self.vm.showForm = self.vm;
+            socket.on('store token', self.storeToken);
         }
     }
 

@@ -65,9 +65,37 @@ module.exports = function (io, db, logger, auth) {
             });
         }
 
+        function addLocation(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.addLocation(data.user, data.location, con, cb); }
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
+        function addItem(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.addItem(data.user, data.location, data.item, con, cb); }
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
         socket.on('get users', getUsers);
         socket.on('get locations', getLocations);
         socket.on('get items', getItems);
+        socket.on('add location as admin', addLocation);
+        socket.on('add item as admin', addItem);
     }
 
     io.on('connection', listen);

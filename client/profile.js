@@ -3,26 +3,20 @@ var vmProfile = new Vue({
     data: {
         btnText: 'Set Location',
         status: 'Status',
-        users: [
-            {oldUsername: 'a', newUsername: '', newPassword: ''},
-            {oldUsername: 'b', newUsername: '', newPassword: ''},
-            {oldUsername: 'c', newUsername: '', newPassword: ''}
-        ],
-        locations: [
-            {name: 'loc a', latitude: 1.00, longitude: 2.00},
-            {name: 'loc b', latitude: 3.00, longitude: 4.00},
-            {name: 'loc c', latitude: 5.00, longitude: 6.00}
-        ],
-        items: [
-            {name: 'item a',  description: 'description a', price: 500},
-            {name: 'item b',  description: 'description b', price: 700},
-            {name: 'item c',  description: 'description c', price: 900},
-        ],
+        users: [],
+        locations: [],
+        items: [],
         showAdmin: false,
         currentUser: '',
         currentLocation: '',
         username: '',
-        password: ''
+        password: '',
+        locationname: '',
+        latitude: '',
+        longitude: '',
+        itemname: '',
+        itemdescription: '',
+        itemprice: ''
     },
     methods: {
         setLocation: function () {
@@ -47,12 +41,16 @@ var vmProfile = new Vue({
         },
         getLocations: function (user) {
             this.currentUser = user.oldUsername;
+            this.currentLocation = '';
+            this.locations = [];
+            this.items = [];
             db.getToken(function (err, token) {
                 socket.emit('get locations', {token: token.token, user: user.oldUsername});
             });
         },
         getItems: function (location) {
             this.currentLocation = location.locationname;
+            this.items = [];
             var self = this;
             db.getToken(function (err, token) {
                 console.log('get items');
@@ -80,6 +78,20 @@ var vmProfile = new Vue({
             console.log(location);
             socket.emit('delete location', location);
         },
+        addLocation: function () {
+            var self = this;
+            db.getToken(function (err, token) {
+                socket.emit('add location as admin', {
+                    token: token.token,
+                    user: self.currentUser,
+                    location: {
+                        name: self.locationname,
+                        latitude: self.latitude,
+                        longitude: self.longitude
+                    }
+                });
+            });
+        },
         editItem: function (item) {
             console.log('edit item:');
             console.log(item);
@@ -89,6 +101,21 @@ var vmProfile = new Vue({
             console.log('delete item:');
             console.log(item);
             socket.emit('delete item', item);
+        },
+        addItem: function () {
+            var self = this;
+            db.getToken(function (err, token) {
+                socket.emit('add item as admin', {
+                    token: token.token,
+                    user: self.currentUser,
+                    location: self.currentLocation,
+                    item: {
+                        name: self.itemname,
+                        description: self.itemdescription,
+                        price: self.itemprice
+                    }
+                });
+            });
         }
     }
 });

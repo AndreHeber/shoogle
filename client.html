@@ -110,7 +110,7 @@
                             <div v-for="user in users">
                                 <form class="form-inline">
                                     <div class="form-group">
-                                        <a v-on:click.prevent="getLocations(user)">{{user.oldUsername}}</a>
+                                        <a href="#" v-on:click.prevent="getLocations(user)">{{user.oldUsername}}</a>
                                         <label for="adminInputEmail" style="margin: 5px;">Update Email address</label>
                                         <input v-model="user.newUsername" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
                                         <label for="adminInputPassword" style="margin: 5px; margin-top: 10px;">and Password</label>
@@ -121,12 +121,24 @@
                                 </form>
                             </div>
 
+                            <form v-show="currentUser" class="form-inline">
+                                <div class="form-group">
+                                    <label for="adminInputLocation" style="margin: 5px;">Add Location with Name</label>
+                                    <input v-model="locationname" type="entry" class="form-control" id="adminInputLocation" placeholder="Location Name">
+                                    <label for="adminInputLatitude" style="margin: 5px; margin-top: 10px;">and Lat</label>
+                                    <input v-model="latitude" type="entry" class="form-control" id="adminInputLatitude" placeholder="Latitude">
+                                    <label for="adminInputLongitude" style="margin: 5px; margin-top: 10px;">and Lng</label>
+                                    <input v-model="longitude" type="entry" class="form-control" id="adminInputLongitude" placeholder="Longitude">
+                                </div>
+                                <button v-on:click.prevent="addLocation" class="btn btn-default">Add <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+                            </form>
+
                             <div v-for="location in locations">
                                 <form class="form-inline">
                                     <div class="form-group">
-                                        <a v-on:click.prevent="getItems(location)">{{location.locationname}}</a>
+                                        <a href="#" v-on:click.prevent="getItems(location)">{{location.locationname}}</a>
                                         <label for="adminInputLocationName" style="margin: 5px;">Location</label>
-                                        <input v-model="location.locationname" type="email" class="form-control" id="adminInputLocationName" placeholder="Locationname">
+                                        <input v-model="location.locationname" type="entry" class="form-control" id="adminInputLocationName" placeholder="Locationname">
                                         <label for="adminInputLatitude" style="margin: 5px; margin-top: 10px;">is at Lat</label>
                                         <input v-model="location.latitude" type="entry" class="form-control" id="adminInputLatitude" placeholder="Latitude">
                                         <label for="adminInputLongitude" style="margin: 5px; margin-top: 10px;">and Lng</label>
@@ -136,6 +148,18 @@
                                     </div>
                                 </form>
                             </div>
+
+                            <form v-show="currentLocation" class="form-inline">
+                                <div class="form-group">
+                                    <label for="adminInputItemName" style="margin: 5px;">Add Item</label>
+                                    <input v-model="itemname" type="entry" class="form-control" id="adminInputItemName" placeholder="Name">
+                                    <label for="adminInputItemDescription" style="margin: 5px; margin-top: 10px;">with Description</label>
+                                    <input v-model="itemdescription" type="entry" class="form-control" id="adminInputItemDescription" placeholder="Description">
+                                    <label for="adminInputItemPrice" style="margin: 5px; margin-top: 10px;">and Price</label>
+                                    <input v-model="itemprice" type="entry" class="form-control" id="adminInputItemPrice" placeholder="Price">
+                                </div>
+                                <button v-on:click.prevent="addItem" class="btn btn-default">Add <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+                            </form>
 
                             <div v-for="item in items">
                                 <form class="form-inline">

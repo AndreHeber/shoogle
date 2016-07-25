@@ -151,7 +151,7 @@ module.exports = function (logger, ready) {
 
     dbThreadPool.addItem = function (username, locationname, item, db, callback) {
         db.query('select user_id from users where username = $1;', [username], (err, result) => {
-            var userId = result.rows[0].username;
+            var userId = result.rows[0].user_id;
             var sql = 'insert into items (user_id, location_id, itemname, itemdescription, itemprice) values ' + 
                      '($1, (select location_id from locations where locationname = $2 and user_id = $1), $3, $4, $5);';
             db.query(sql, [userId, locationname, item.name, item.description, item.price], (err, result) => {
