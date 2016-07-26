@@ -97,11 +97,11 @@ module.exports = function (logger, ready) {
     }
 
     dbThreadPool.getUsers = function (db, callback) {
-        db.query('select username from users;', [], (err, result) => {
+        db.query('select user_id, username from users;', [], (err, result) => {
             var users = [];
 
             for (i=0; i<result.rows.length; i++)
-                users.push(result.rows[i].username);
+                users.push({id: result.rows[i].user_id, name: result.rows[i].username});
             
             callback(err, users);
         });
@@ -133,45 +133,82 @@ module.exports = function (logger, ready) {
         });
     }
 
-    dbThreadPool.addLocation = function (username, location, db, callback) {
-        var sql = 'insert into locations (user_id, locationname, latitude, longitude) values ' + 
-                  '((select user_id from users where username = $1), $2, $3, $4);' 
-        db.query(sql, [username, location.name, location.latitude, location.longitude], (err, result) => {
+    dbThreadPool.addLocation = function (user_id, location, db, callback) {
+        var sql = 'insert into locations (user_id, locationname, latitude, longitude) values ($1, $2, $3, $4) returning location_id;' 
+        db.query(sql, [user_id, location.name, location.latitude, location.longitude], (err, result) => {
             callback(err, result.rows[0]);
         });
     }
 
-    dbThreadPool.getLocations = function (username, db, callback) {
-        var sql = 'select locationname, latitude, longitude from locations where user_id = ' +
-                  '(select user_id from users where username = $1);';
-        db.query(sql, [username], (err, result) => {
-            callback(err, result.rows);
+    // dbThreadPool.getLocations = function (username, db, callback) {
+    //     var sql = 'select location_id, locationname, latitude, longitude from locations where user_id = ' +
+    //               '(select user_id from users where username = $1);';
+    //     db.query(sql, [username], (err, result) => {
+    //         var locations = [];
+    //         for (i=0; i<result.rows.length; i++)
+    //             locations.push({
+    //                 id: result.rows[i].location_id,
+    //                 name: result.rows[i].locationname,
+    //                 latitude: result.rows[i].latitude,
+    //                 longitude: result.rows[i].longitude
+    //             });
+    //         callback(err, locations);
+    //     });
+    // }
+
+    dbThreadPool.getLocations = function (user_id, db, callback) {
+        db.query('select location_id, locationname, latitude, longitude from locations where user_id = $1;', [user_id], (err, result) => {
+            var locations = [];
+            for (i=0; i<result.rows.length; i++)
+                locations.push({
+                    id: result.rows[i].location_id,
+                    name: result.rows[i].locationname,
+                    latitude: result.rows[i].latitude,
+                    longitude: result.rows[i].longitude
+                });
+            callback(err, locations);
         });
     }
 
-    dbThreadPool.addItem = function (username, locationname, item, db, callback) {
-        db.query('select user_id from users where username = $1;', [username], (err, result) => {
-            var userId = result.rows[0].user_id;
-            var sql = 'insert into items (user_id, location_id, itemname, itemdescription, itemprice) values ' + 
-                     '($1, (select location_id from locations where locationname = $2 and user_id = $1), $3, $4, $5);';
-            db.query(sql, [userId, locationname, item.name, item.description, item.price], (err, result) => {
-                callback(err, result.rows[0]);
-            });
+    dbThreadPool.addItem = function (user_id, location_id, item, db, callback) {
+        var sql = 'insert into items (user_id, location_id, itemname, itemdescription, itemprice) values ($1, $2, $3, $4, $5) returning item_id;';
+        db.query(sql, [user_id, location_id, item.name, item.description, item.price], (err, result) => {
+            callback(err, result.rows[0]);
         });
     }
 
-    dbThreadPool.getItems = function (username, locationname, db, callback) {
-        db.query('select user_id from users where username = $1;', [username], (err, result) => {
-            var userId = result.rows[0].user_id;
-            var sql = 'select itemname, itemdescription, itemprice from items where user_id = $1 and location_id = ' +
-                      '(select location_id from locations where user_id = $1 and locationname = $2);';
-            db.query(sql, [userId, locationname], (err, result) => {
-                var items = [];
+    // dbThreadPool.getItems = function (username, locationname, db, callback) {
+    //     db.query('select user_id from users where username = $1;', [username], (err, result) => {
+    //         var userId = result.rows[0].user_id;
+    //         var sql = 'select item_id, itemname, itemdescription, itemprice from items where user_id = $1 and location_id = ' +
+    //                   '(select location_id from locations where user_id = $1 and locationname = $2);';
+    //         db.query(sql, [userId, locationname], (err, result) => {
+    //             var items = [];
+    // 
+    //             for (i=0; i<result.rows.length; i++)
+    //                 items.push({
+    //                     id: result.rows[i].item_id,
+    //                     name: result.rows[i].itemname,
+    //                     description: result.rows[i].itemdescription,
+    //                     price: result.rows[i].itemprice
+    //                 });
+    //             callback(err, items);
+    //         });
+    //     });
+    // }
 
-                for (i=0; i<result.rows.length; i++)
-                    items.push({name: result.rows[i].itemname, description: result.rows[i].itemdescription, price: result.rows[i].itemprice});
-                callback(err, items);
-            });
+    dbThreadPool.getItems = function (location_id, db, callback) {
+        db.query('select item_id, itemname, itemdescription, itemprice from items where location_id = $1', [location_id], (err, result) => {
+            var items = [];
+
+            for (i=0; i<result.rows.length; i++)
+                items.push({
+                    id: result.rows[i].item_id,
+                    name: result.rows[i].itemname,
+                    description: result.rows[i].itemdescription,
+                    price: result.rows[i].itemprice
+                });
+            callback(err, items);
         });
     }
 

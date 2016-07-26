@@ -15,6 +15,8 @@ module.exports = function (io, db, logger) {
     var signingKey;
     var auth = {};
 
+    auth.tokenCache = {};
+
     if (serverUnderDevelopment)
         generatePassword('development');
     else
@@ -63,6 +65,7 @@ module.exports = function (io, db, logger) {
 
             var token = createJWT(user, signingKey);
             socket.emit('store token', token);
+            auth.tokenCache[token] = user;
             generateBcryptHash(token, (err, hashedToken) => {
                 callback(err, hashedToken);
             });
@@ -236,24 +239,29 @@ module.exports = function (io, db, logger) {
             });
         }
 
-        runInSeries([
-            (cb) => { nJwt.verify(token, signingKey, cb); },
-            checkVerification,
-            db.createConnection,
-            (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
-            (cb) => { db.getToken(user, dbConnection, cb); },
-            compareTokens
-        ], function (err, result) {
-            if (err == 'token mismatch') err = '';
-            else if (err == 'token not found') {
-                logger.log('warn', err);
-                socket.emit('login token', 'token invalid');
-                err = '';
-            } else if (err) throw err;
-            else error = '';
-            dbDone();
-            callback(error, user);
-        });
+        var cachedUser = auth.tokenCache[token];
+        if (typeof cachedUser === 'undefined') {
+            runInSeries([
+                (cb) => { nJwt.verify(token, signingKey, cb); },
+                checkVerification,
+                db.createConnection,
+                (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
+                (cb) => { db.getToken(user, dbConnection, cb); },
+                compareTokens
+            ], function (err, result) {
+                if (err == 'token mismatch') err = '';
+                else if (err == 'token not found') {
+                    logger.log('warn', err);
+                    socket.emit('login token', 'token invalid');
+                    err = '';
+                } else if (err) throw err;
+                else error = '';
+                dbDone();
+                callback(error, user);
+            });
+        } else {
+            callback(false, cachedUser);
+        }
     }
 
     // verify that user exists and it has the role 'admin'

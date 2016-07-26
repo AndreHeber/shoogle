@@ -37,7 +37,7 @@ module.exports = function (io, db, logger, auth) {
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
-                (con, done, cb) => { dbDone = done; db.getLocations(data.user, con, cb); },
+                (con, done, cb) => { dbDone = done; db.getLocations(data.user_id, con, cb); },
                 sendLocations
             ], function (err, result) {
                 if (err) throw err;
@@ -57,7 +57,7 @@ module.exports = function (io, db, logger, auth) {
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
-                (con, done, cb) => { dbDone = done; db.getItems(data.user, data.location, con, cb); },
+                (con, done, cb) => { dbDone = done; db.getItems(data.location_id, con, cb); },
                 sendItems
             ], function (err, result) {
                 if (err) throw err;
@@ -71,7 +71,7 @@ module.exports = function (io, db, logger, auth) {
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
-                (con, done, cb) => { dbDone = done; db.addLocation(data.user, data.location, con, cb); }
+                (con, done, cb) => { dbDone = done; db.addLocation(data.user_id, data.location, con, cb); }
             ], function (err, result) {
                 if (err) throw err;
                 dbDone();
@@ -84,7 +84,7 @@ module.exports = function (io, db, logger, auth) {
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
-                (con, done, cb) => { dbDone = done; db.addItem(data.user, data.location, data.item, con, cb); }
+                (con, done, cb) => { dbDone = done; db.addItem(data.user_id, data.location_id, data.item, con, cb); }
             ], function (err, result) {
                 if (err) throw err;
                 dbDone();

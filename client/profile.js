@@ -40,23 +40,19 @@ var vmProfile = new Vue({
             map.setGeolocationPosition();
         },
         getLocations: function (user) {
-            this.currentUser = user.oldUsername;
+            this.currentUser = user.id;
             this.currentLocation = '';
             this.locations = [];
             this.items = [];
             db.getToken(function (err, token) {
-                socket.emit('get locations', {token: token.token, user: user.oldUsername});
+                socket.emit('get locations', {token: token.token, user_id: user.id});
             });
         },
         getItems: function (location) {
-            this.currentLocation = location.locationname;
+            this.currentLocation = location.id;
             this.items = [];
-            var self = this;
             db.getToken(function (err, token) {
-                console.log('get items');
-                console.log(self.currentUser);
-                console.log(self.currentLocation);
-                socket.emit('get items', {token: token.token, user: self.currentUser, location: self.currentLocation});
+                socket.emit('get items', {token: token.token, location_id: location.id});
             });
         },
         editUser: function (user) {
@@ -83,7 +79,7 @@ var vmProfile = new Vue({
             db.getToken(function (err, token) {
                 socket.emit('add location as admin', {
                     token: token.token,
-                    user: self.currentUser,
+                    user_id: self.currentUser,
                     location: {
                         name: self.locationname,
                         latitude: self.latitude,
@@ -107,8 +103,8 @@ var vmProfile = new Vue({
             db.getToken(function (err, token) {
                 socket.emit('add item as admin', {
                     token: token.token,
-                    user: self.currentUser,
-                    location: self.currentLocation,
+                    user_id: self.currentUser,
+                    location_id: self.currentLocation,
                     item: {
                         name: self.itemname,
                         description: self.itemdescription,
@@ -143,7 +139,7 @@ socket.on('get users', function (users) {
 
     vmProfile.users = [];
     for (i=0; i<users.length; i++)
-        vmProfile.users.push({oldUsername: users[i], newUsername: '', newPassword: ''});
+        vmProfile.users.push({id: users[i].id, name: users[i].name, newUsername: '', newPassword: ''});
 });
 
 socket.on('get locations', function (locations) {
