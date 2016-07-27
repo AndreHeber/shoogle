@@ -31,7 +31,7 @@ var vmProfile = new Vue({
                     self.status = 'Save Location';
                     map.addMarker();
                 }
-                // socket.emit('add location', {token: token, name: 'somewhere', latitude: 42.0, longitude: 42.0})
+                // socket.emit('add location', {token: token.token, name: 'somewhere', latitude: 42.0, longitude: 42.0})
             });
             // this.status = 'bla';
         },
@@ -56,10 +56,21 @@ var vmProfile = new Vue({
             });
         },
         editUser: function (user) {
-            socket.emit('edit user', {oldUsername: user.oldUsername, newUsername: user.newUsername, password: user.newPassword});
+            db.getToken(function (err, token) {
+                socket.emit('edit user as admin', {
+                    token: token.token,
+                    user: {
+                        id: user.id,
+                        name: user.newName,
+                        password: user.password
+                    }
+                });
+            });
         },
         deleteUser: function (user) {
-            socket.emit('delete user', user);
+            db.getToken(function (err, token) {
+                socket.emit('delete user as admin', {token: token.token, id: user.id});
+            });
         },
         addUser: function () {
             socket.emit('register user', { username: this.username, password: this.password });
@@ -67,12 +78,16 @@ var vmProfile = new Vue({
         editLocation: function (location) {
             console.log('edit location:');
             console.log(location);
-            socket.emit('edit location', location);
+            db.getToken(function (err, token) {
+                socket.emit('edit location as admin', {token: token.token, location: location});
+            });
         },
         deleteLocation: function (location) {
             console.log('delete location:');
             console.log(location);
-            socket.emit('delete location', location);
+            db.getToken(function (err, token) {
+                socket.emit('delete location as admin', {token: token.token, id: location.id});
+            });
         },
         addLocation: function () {
             var self = this;
@@ -91,12 +106,16 @@ var vmProfile = new Vue({
         editItem: function (item) {
             console.log('edit item:');
             console.log(item);
-            socket.emit('edit item', item);
+            db.getToken(function (err, token) {
+                socket.emit('edit item as admin', {token: token.token, item: item});
+            });
         },
         deleteItem: function (item) {
             console.log('delete item:');
             console.log(item);
-            socket.emit('delete item', item);
+            db.getToken(function (err, token) {
+                socket.emit('delete item as admin', {token: token.token, id: item.id});
+            });
         },
         addItem: function () {
             var self = this;
@@ -122,12 +141,12 @@ socket.on('roles', function (data) {
         if (data[i] == 'admin') {
             vmProfile.showAdmin = true;
             db.getToken(function (err, token) {
-                socket.emit('get users', token);
+                socket.emit('get users', token.token);
                 console.log('get users from server');
             });
         } else if (data[i] == 'user') {
             db.getToken(function (err, token) {
-                socket.emit('get userdata', token);
+                socket.emit('get userdata', token.token);
             });
         }
     }

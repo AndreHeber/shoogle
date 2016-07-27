@@ -112,9 +112,9 @@
                                     <div class="form-group">
                                         <a href="#" v-on:click.prevent="getLocations(user)">{{user.name}}</a>
                                         <label for="adminInputEmail" style="margin: 5px;">Update Email address</label>
-                                        <input v-model="user.newUsername" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
+                                        <input v-model="user.newName" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
                                         <label for="adminInputPassword" style="margin: 5px; margin-top: 10px;">and Password</label>
-                                        <input v-model="user.newPassword" type="password" class="form-control" id="adminInputPassword" placeholder="Password">
+                                        <input v-model="user.password" type="password" class="form-control" id="adminInputPassword" placeholder="Password">
                                         <button v-on:click.prevent="editUser(user)" class="btn btn-default"><span class="glyphicon glyphicon-save" aria-hidden="true"></span></button>
                                         <button v-on:click.prevent="deleteUser(user)" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></i></button>
                                     </div>

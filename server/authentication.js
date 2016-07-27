@@ -38,7 +38,7 @@ module.exports = function (io, db, logger) {
     }
 
 
-    function generateBcryptHash(value, callback) {
+    auth.hashPassword = function (value, callback) {
         bcrypt.genSalt(10, (err, salt) => {
             if (err) throw err;
             bcrypt.hash(value, salt, null, (err, hash) => {
@@ -66,7 +66,7 @@ module.exports = function (io, db, logger) {
             var token = createJWT(user_id, signingKey);
             socket.emit('store token', token);
             auth.tokenCache[token] = user_id;
-            generateBcryptHash(token, (err, hashedToken) => {
+            auth.hashPassword(token, (err, hashedToken) => {
                 callback(err, hashedToken);
             });
         }
@@ -98,7 +98,7 @@ module.exports = function (io, db, logger) {
             }
 
             function createUserInDb(callback) {
-                generateBcryptHash(data.password, (err, hashedPw) => {
+                auth.hashPassword(data.password, (err, hashedPw) => {
                     db.addUser(data.username, hashedPw, dbConnection, (err, user_id) => {
                         callback(err, user_id);
                     });

@@ -90,6 +90,19 @@ module.exports = function (logger, ready) {
         });
     }
 
+    dbThreadPool.editUser = function (user, db, callback) {
+        var sql = 'update users set username = $1, password = $2 where user_id = $3;';
+        db.query(sql, [user.name, user.password, user.id], (err, result) => {
+            callback(err);
+        });
+    }
+
+    dbThreadPool.deleteUser = function (user_id, db, callback) {
+        db.query('delete from users where user_id = $1;', [user_id], (err, result) => {
+            callback(err);
+        });
+    }
+
     dbThreadPool.getUsers = function (db, callback) {
         db.query('select user_id, username from users;', [], (err, result) => {
             var users = [];
@@ -139,6 +152,19 @@ module.exports = function (logger, ready) {
         });
     }
 
+    dbThreadPool.editLocation = function (location, db, callback) {
+        var sql = 'update locations set locationname = $1, latitude = $2, longitude = $3 where location_id = $4;';
+        db.query(sql, [location.name, location.latitude, location.longitude, location.id], (err, result) => {
+            callback(err);
+        });
+    }
+
+    dbThreadPool.deleteLocation = function (location_id, db, callback) {
+        db.query('delete from locations where location_id = $1;', [location_id], (err, result) => {
+            callback(err);
+        });
+    }
+
     dbThreadPool.getLocations = function (user_id, db, callback) {
         db.query('select location_id, locationname, latitude, longitude from locations where user_id = $1;', [user_id], (err, result) => {
             var locations = [];
@@ -157,6 +183,19 @@ module.exports = function (logger, ready) {
         var sql = 'insert into items (user_id, location_id, itemname, itemdescription, itemprice) values ($1, $2, $3, $4, $5) returning item_id;';
         db.query(sql, [user_id, location_id, item.name, item.description, item.price], (err, result) => {
             callback(err, result.rows[0]);
+        });
+    }
+
+    dbThreadPool.editItem = function (item, db, callback) {
+        var sql = 'update items set itemname = $1, itemdescription = $2, itemprice = $3 where item_id = $4;';
+        db.query(sql, [item.name, item.description, item.price, item.id], (err, result) => {
+            callback(err);
+        });
+    }
+
+    dbThreadPool.deleteItem = function (item_id, db, callback) {
+        db.query('delete from items where item_id = $1;', [item_id], (err, result) => {
+            callback(err);
         });
     }
 

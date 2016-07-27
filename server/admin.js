@@ -14,7 +14,7 @@ module.exports = function (io, db, logger, auth) {
             }
 
             runInSeries([
-                (cb) => { auth.verifyAdmin(token.token, cb); },
+                (cb) => { auth.verifyAdmin(token, cb); },
                 (username, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
                 (cb) => { db.getUsers(dbConnection, cb); },
@@ -91,11 +91,104 @@ module.exports = function (io, db, logger, auth) {
             });
         }
 
+        function editUser(data) {
+            var dbDone;
+            var hashedPassword;
+
+            function createHashedPassword(callback) {
+                auth.hashPassword(data.user.password, (err, hashedPassword) => {
+                    data.user.password = hashedPassword;
+                    callback(err);
+                });
+            }
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { createHashedPassword(cb); },
+                db.createConnection,
+                (con, done, cb) => { dbDone = done; db.editUser(data.user, con, cb); }
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
+        function editLocation(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.editLocation(data.location, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
+        function editItem(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.editItem(data.item, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
+        function deleteUser(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.deleteUser(data.id, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
+        function deleteLocation(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.deleteLocation(data.id, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
+        function deleteItem(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.deleteItem(data.id, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
         socket.on('get users', getUsers);
         socket.on('get locations', getLocations);
         socket.on('get items', getItems);
         socket.on('add location as admin', addLocation);
         socket.on('add item as admin', addItem);
+        socket.on('edit user as admin', editUser);
+        socket.on('edit location as admin', editLocation);
+        socket.on('edit item as admin', editItem);
+        socket.on('delete user as admin', deleteUser);
+        socket.on('delete location as admin', deleteLocation);
+        socket.on('delete item as admin', deleteItem);
     }
 
     io.on('connection', listen);
