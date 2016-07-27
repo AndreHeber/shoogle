@@ -18,7 +18,7 @@ module.exports = function (logger, ready) {
             'user_id serial primary key,' +
             'username text not null,' +
             'password text not null,' +
-            'token text not null,' +
+            'token text,' +
             'userpicture text' +
             ');',
             'create table if not exists roles (' +
@@ -84,14 +84,8 @@ module.exports = function (logger, ready) {
         });
     }
 
-    dbThreadPool.addUser = function (user, hash, token, db, callback) {
-        db.query('insert into users (username, password, token) values ($1, $2, $3) returning user_id;', [user, hash, token], (err, result) => {
-            callback(err, result.rows[0]);
-        });
-    }
-
-    dbThreadPool.getUser = function (username, db, callback) {
-        db.query('select * from users where username = $1;', [username], (err, result) => {
+    dbThreadPool.addUser = function (user, hash, db, callback) {
+        db.query('insert into users (username, password) values ($1, $2) returning user_id;', [user, hash], (err, result) => {
             callback(err, result.rows[0]);
         });
     }
@@ -108,27 +102,32 @@ module.exports = function (logger, ready) {
     }
 
     dbThreadPool.userExists = function (user, db, callback) {
-        db.query('select count(*) from users where username = $1;', [user], (err, result) => {
-            var exists = parseInt(result.rows[0].count);
-            callback(err, exists);
+        db.query('select user_id from users where username = $1;', [user], (err, result) => {
+            var userExists = result.rowCount;
+            if (userExists) callback(err, result.rows[0].user_id);
+            else            callback(err, userExists);
         });
     }
 
-    dbThreadPool.getPassword = function (user, db, callback) {
-        db.query('select password from users where username = $1;', [user], (err, result) => {
+    dbThreadPool.getPassword = function (user_id, db, callback) {
+        db.query('select password from users where user_id = $1;', [user_id], (err, result) => {
             callback(err, result.rows[0].password);
         });
     }
 
-    dbThreadPool.getToken = function (user, db, callback) {
-        db.query('select token from users where username = $1;', [user], (err, result) => {
-            if (typeof result.rows[0] === 'undefined') callback('token not found');
-            else callback(err, result.rows[0].token);
+    dbThreadPool.getToken = function (user_id, db, callback) {
+        db.query('select token from users where user_id = $1;', [user_id], (err, result) => {
+            if ( (typeof result === 'undefined')
+              || (typeof result.rows[0] === 'undefined') ) {
+                callback('token not found');
+            } else {
+                callback(err, result.rows[0].token);
+            }
         });
     }
 
-    dbThreadPool.storeToken = function (user, token, db, callback) {
-        db.query('update users set token = $1 where username = $2;', [token, user], (err, result) => {
+    dbThreadPool.storeToken = function (user_id, token, db, callback) {
+        db.query('update users set token = $1 where user_id = $2;', [token, user_id], (err, result) => {
             callback(err, result.rowCount);
         });
     }
@@ -139,22 +138,6 @@ module.exports = function (logger, ready) {
             callback(err, result.rows[0]);
         });
     }
-
-    // dbThreadPool.getLocations = function (username, db, callback) {
-    //     var sql = 'select location_id, locationname, latitude, longitude from locations where user_id = ' +
-    //               '(select user_id from users where username = $1);';
-    //     db.query(sql, [username], (err, result) => {
-    //         var locations = [];
-    //         for (i=0; i<result.rows.length; i++)
-    //             locations.push({
-    //                 id: result.rows[i].location_id,
-    //                 name: result.rows[i].locationname,
-    //                 latitude: result.rows[i].latitude,
-    //                 longitude: result.rows[i].longitude
-    //             });
-    //         callback(err, locations);
-    //     });
-    // }
 
     dbThreadPool.getLocations = function (user_id, db, callback) {
         db.query('select location_id, locationname, latitude, longitude from locations where user_id = $1;', [user_id], (err, result) => {
@@ -177,26 +160,6 @@ module.exports = function (logger, ready) {
         });
     }
 
-    // dbThreadPool.getItems = function (username, locationname, db, callback) {
-    //     db.query('select user_id from users where username = $1;', [username], (err, result) => {
-    //         var userId = result.rows[0].user_id;
-    //         var sql = 'select item_id, itemname, itemdescription, itemprice from items where user_id = $1 and location_id = ' +
-    //                   '(select location_id from locations where user_id = $1 and locationname = $2);';
-    //         db.query(sql, [userId, locationname], (err, result) => {
-    //             var items = [];
-    // 
-    //             for (i=0; i<result.rows.length; i++)
-    //                 items.push({
-    //                     id: result.rows[i].item_id,
-    //                     name: result.rows[i].itemname,
-    //                     description: result.rows[i].itemdescription,
-    //                     price: result.rows[i].itemprice
-    //                 });
-    //             callback(err, items);
-    //         });
-    //     });
-    // }
-
     dbThreadPool.getItems = function (location_id, db, callback) {
         db.query('select item_id, itemname, itemdescription, itemprice from items where location_id = $1', [location_id], (err, result) => {
             var items = [];
@@ -216,12 +179,11 @@ module.exports = function (logger, ready) {
         //db.query('select *')
     }
 
-    dbThreadPool.getUserRoles = function (username, db, callback) {
+    dbThreadPool.getUserRoles = function (user_id, db, callback) {
         var sql = 'select role from roles ' +
             'inner join user_role on (user_role.role_id = roles.role_id) ' +
-            'inner join users on (users.user_id = user_role.user_id) ' +
-            'where username = $1;'
-        db.query(sql, [username], (err, result) => {
+            'where user_id = $1;'
+        db.query(sql, [user_id], (err, result) => {
             var roles = [];
 
             if (err) throw err;

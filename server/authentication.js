@@ -49,12 +49,12 @@ module.exports = function (io, db, logger) {
 
     function listen(socket) {
 
-        function generateToken(user, callback) {
+        function generateToken(user_id, callback) {
 
-            function createJWT(user, key) {
+            function createJWT(user_id, key) {
                 var claims = {
                     iss: "http://shoogle.com/",  // The URL of your service
-                    sub: user,    // The UID of the user in your system
+                    sub: user_id,    // The UID of the user in your system
                     scope: "self",    // the user rights
                 };
                 var jwt = nJwt.create(claims, key);
@@ -63,27 +63,26 @@ module.exports = function (io, db, logger) {
                 return jwt.compact();
             }
 
-            var token = createJWT(user, signingKey);
+            var token = createJWT(user_id, signingKey);
             socket.emit('store token', token);
-            auth.tokenCache[token] = user;
+            auth.tokenCache[token] = user_id;
             generateBcryptHash(token, (err, hashedToken) => {
                 callback(err, hashedToken);
             });
         }
 
-        function getAndSendUserRoles(username, db, dbCon, callback) {
-            db.getUserRoles(username, dbCon, function (err, roles) {
+        function getAndSendUserRoles(user_id, db, dbCon, callback) {
+            db.getUserRoles(user_id, dbCon, function (err, roles) {
                 socket.emit('roles', roles);
             });
         }
 
         function registerUser(data) {
             var dbConnection, dbDone;
+            var user_id;
 
-            function createUserInDb(hashedToken, callback) {
-                generateBcryptHash(data.password, (err, hashedPw) => {
-                    db.addUser(data.username, hashedPw, hashedToken, dbConnection, callback);
-                });
+            function userExistsInDb(callback) {
+                db.userExists(data.username, dbConnection, callback);
             }
 
             function checkUserExistsInDb(userExists, callback) {
@@ -98,8 +97,12 @@ module.exports = function (io, db, logger) {
                 }
             }
 
-            function userExistsInDb(callback) {
-                db.userExists(data.username, dbConnection, callback);
+            function createUserInDb(callback) {
+                generateBcryptHash(data.password, (err, hashedPw) => {
+                    db.addUser(data.username, hashedPw, dbConnection, (err, user_id) => {
+                        callback(err, user_id);
+                    });
+                });
             }
 
             runInSeries([
@@ -107,8 +110,9 @@ module.exports = function (io, db, logger) {
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
                 userExistsInDb,
                 checkUserExistsInDb,
-                (cb) => { generateToken(data.username, cb); },
-                (hashedToken, cb) => { createUserInDb(hashedToken, cb); }
+                createUserInDb,
+                (_user_id, cb) => { user_id = _user_id; generateToken(_user_id, cb); },
+                (token, cb) => { db.storeToken(user_id, token, cb); }
             ], function (err, added) {
                 if (err == 'user exists') err = '';
                 if (err) throw err;
@@ -118,18 +122,18 @@ module.exports = function (io, db, logger) {
 
         function loginUser(data) {
             var dbConnection, dbDone;
+            var user_id;
 
             function userExistsInDb(callback) {
-                db.userExists(data.username, dbConnection, callback);
-            }
-
-            function checkUserExistsInDb(exists, callback) {
-                if (exists) callback();
-                else {
-                    logger.log('info', 'unregistered user tries to login');
-                    socket.emit('login user', 'unknown user');
-                    callback('user not exists');
-                }
+                db.userExists(data.username, dbConnection, (err, user_id) => {
+                    if (user_id == 0) {
+                        callback('user not exists');
+                        logger.log('info', 'unregistered user tries to login');
+                        socket.emit('login user', 'unknown user');
+                    } else {
+                        callback(err, user_id);
+                    }
+                });
             }
 
             function comparePasswords(hashedPwFromDb, callback) {
@@ -150,12 +154,11 @@ module.exports = function (io, db, logger) {
                 db.createConnection,
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
                 userExistsInDb,
-                checkUserExistsInDb,
-                (cb) => { db.getPassword(data.username, dbConnection, cb); },
+                (_user_id, cb) => { user_id = _user_id; db.getPassword(_user_id, dbConnection, cb); },
                 comparePasswords,
-                (cb) => { generateToken(data.username, cb); },
-                (hashedToken, cb) => { db.storeToken(data.username, hashedToken, dbConnection, cb); },
-                (cb) => { getAndSendUserRoles(data.username, db, dbConnection, cb); }
+                (cb) => { generateToken(user_id, cb); },
+                (hashedToken, cb) => { db.storeToken(user_id, hashedToken, dbConnection, cb); },
+                (cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
             ], (err, login) => {
                 if (err == 'user not exists') err = '';
                 if (err == 'wrong password') err = '';
@@ -165,17 +168,18 @@ module.exports = function (io, db, logger) {
         }
 
         function loginToken(data) {
-            var dbConnection, dbDone, user;
+            var dbConnection, dbDone;
+            var user_id;
 
             function checkVerification(verifiedJWT, callback) {
-                user = verifiedJWT.body.sub;
+                user_id = verifiedJWT.body.sub;
                 callback();
             }
 
             function compareTokens(hashedToken, callback) {
                 bcrypt.compare(data.token, hashedToken, (err, result) => {
                     if (result) {
-                        logger.log('info', 'User ' + user + ' logging in with token');
+                        logger.log('info', 'User with id ' + user_id + ' logging in with token');
                         socket.emit('login token', 'login ok');
                     } else {
                         logger.log('warning', 'token mismatch');
@@ -190,11 +194,11 @@ module.exports = function (io, db, logger) {
                 checkVerification,
                 db.createConnection,
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
-                (cb) => { db.getToken(user, dbConnection, cb); },
+                (cb) => { db.getToken(user_id, dbConnection, cb); },
                 compareTokens,
-                (cb) => { generateToken(user, cb); },
-                (hashedToken, cb) => { db.storeToken(user, hashedToken, dbConnection, cb); },
-                (cb) => { getAndSendUserRoles(user, db, dbConnection, cb); }
+                (cb) => { generateToken(user_id, cb); },
+                (hashedToken, cb) => { db.storeToken(user_id, hashedToken, dbConnection, cb); },
+                (cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
             ], (err, login) => {
                 if (err == 'token invalid') err = '';
                 else if (err == 'token not found') {
@@ -239,8 +243,8 @@ module.exports = function (io, db, logger) {
             });
         }
 
-        var cachedUser = auth.tokenCache[token];
-        if (typeof cachedUser === 'undefined') {
+        var cached_user_id = auth.tokenCache[token];
+        if (typeof cached_user_id === 'undefined') {
             runInSeries([
                 (cb) => { nJwt.verify(token, signingKey, cb); },
                 checkVerification,
@@ -260,20 +264,21 @@ module.exports = function (io, db, logger) {
                 callback(error, user);
             });
         } else {
-            callback(false, cachedUser);
+            callback(false, cached_user_id);
         }
     }
 
     // verify that user exists and it has the role 'admin'
     auth.verifyAdmin = function (token, callback) {
-        var user, dbDone;
+        var user_id;
+        var dbDone;
         var err = true;
         var isAdmin = false;
 
         runInSeries([
             (cb) =>  { auth.verifyUser(token, cb); },
-            (_user, cb) => { user = _user; db.createConnection(cb); },
-            (con, done, cb) => { dbDone = done; db.getUserRoles(user, con, cb); }
+            (_user_id, cb) => { user_id = _user_id; db.createConnection(cb); },
+            (con, done, cb) => { dbDone = done; db.getUserRoles(user_id, con, cb); }
         ], function (err, roles) {
             if (err) throw err;
             for (i=0; i<roles.length; i++) {
