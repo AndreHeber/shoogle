@@ -3,15 +3,21 @@ var pg = require('pg');
 module.exports = function (logger, ready) {
     var dbThreadPool;
 
+    var log = function (msg) {
+      dbThreadPool.messages.push(msg)
+    }
+
     function init() {
         dbThreadPool = new pg.Pool({
             user: 'vagrant', //env var: PGUSER
             database: 'test', //env var: PGDATABASE
             password: 'vagrant', //env var: PGPASSWORD
             port: 5432, //env var: PGPORT
-            max: 10, // max number of clients in the pool
-            idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
+            max: 8, // max number of clients in the pool
+            idleTimeoutMillis: 1000, // how long a client is allowed to remain idle before being closed
+            log: log
         });
+        dbThreadPool.messages = [];
 
         var createDatabaseTables = [
             'create table if not exists users (' +
@@ -63,17 +69,18 @@ module.exports = function (logger, ready) {
             ');'
         ];
 
-        function runQuery(client, i) {
+        function runQuery(client, i, done) {
             if (i < createDatabaseTables.length) {
                 client.query(createDatabaseTables[i], [], (err, result) => { if (err) throw err; });
-                runQuery(client, i + 1);
-            }
-            else
+                runQuery(client, i + 1, done);
+            } else {
+                done();
                 ready();
+            }
         }
 
         dbThreadPool.connect(function (err, client, done) {
-            runQuery(client, 0);
+            runQuery(client, 0, done);
         });
     }
     init();
@@ -83,6 +90,10 @@ module.exports = function (logger, ready) {
             callback(err, db, done);
         });
     }
+
+    dbThreadPool.on('error', (err, client) => {
+        console.error('idle client error', err.message, err.stack);
+    });
 
     dbThreadPool.addUser = function (user, hash, db, callback) {
         db.query('insert into users (username, password) values ($1, $2) returning user_id;', [user, hash], (err, result) => {

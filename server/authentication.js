@@ -66,6 +66,7 @@ module.exports = function (io, db, logger) {
             var token = createJWT(user_id, signingKey);
             socket.emit('store token', token);
             auth.tokenCache[token] = user_id;
+            setTimeout(() => {auth.tokenCache[token] = undefined;}, 1000 * 60 * 60); // clear cached token after 1 hour 
             auth.hashPassword(token, (err, hashedToken) => {
                 callback(err, hashedToken);
             });
@@ -288,6 +289,7 @@ module.exports = function (io, db, logger) {
                     break;
                 }
             }
+            dbDone();
             callback(err, isAdmin);
         });
     }

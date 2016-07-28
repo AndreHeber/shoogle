@@ -26,7 +26,7 @@ module.exports = function (io, db, logger, auth) {
         }
 
         function getLocations(data) {
-            var dbDone;
+            var dbCon, dbDone;
 
             function sendLocations(locations, callback) {
                 socket.emit('get locations', locations);
@@ -37,7 +37,7 @@ module.exports = function (io, db, logger, auth) {
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
-                (con, done, cb) => { dbDone = done; db.getLocations(data.user_id, con, cb); },
+                (con, done, cb) => { dbCon = con; dbDone = done; db.getLocations(data.user_id, con, cb); },
                 sendLocations
             ], function (err, result) {
                 if (err) throw err;
