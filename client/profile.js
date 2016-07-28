@@ -16,7 +16,10 @@ var vmProfile = new Vue({
         longitude: '',
         itemname: '',
         itemdescription: '',
-        itemprice: ''
+        itemprice: '',
+        roles: ['user', 'admin'],
+        userRoles: ['admin'],
+        checked: false
     },
     methods: {
         setLocation: function () {
@@ -39,13 +42,21 @@ var vmProfile = new Vue({
             console.log('set geolocation');
             map.setGeolocationPosition();
         },
-        getLocations: function (user) {
+        getRolesAndLocations: function (user) {
             this.currentUser = user.id;
             this.currentLocation = '';
             this.locations = [];
             this.items = [];
             db.getToken(function (err, token) {
+                socket.emit('get all roles', {token: token.token});
+                socket.emit('get roles', {token: token.token, user_id: user.id});
                 socket.emit('get locations', {token: token.token, user_id: user.id});
+            });
+        },
+        editRoles: function () {
+            var self = this;
+            db.getToken(function (err, token) {
+                socket.emit('edit roles as admin', {token: token.token, user_id: self.currentUser, role_ids: self.userRoles});
             });
         },
         getItems: function (location) {
@@ -138,13 +149,15 @@ var vmProfile = new Vue({
 // get roles from server
 socket.on('roles', function (data) {
     for (var i = 0; i < data.length; i++) {
-        if (data[i] == 'admin') {
+        console.log('login roles');
+        console.log(data);
+        if (data[i].role == 'admin') {
             vmProfile.showAdmin = true;
             db.getToken(function (err, token) {
                 socket.emit('get users', token.token);
                 console.log('get users from server');
             });
-        } else if (data[i] == 'user') {
+        } else if (data[i].role == 'user') {
             db.getToken(function (err, token) {
                 socket.emit('get userdata', token.token);
             });
@@ -173,6 +186,22 @@ socket.on('get items', function (items) {
     console.log(items);
 
     vmProfile.items = items;
+});
+
+socket.on('get all roles', function (roles) {
+    console.log('all roles: ');
+    console.log(roles);
+
+    vmProfile.roles = roles;
+});
+
+socket.on('get roles', function (roles) {
+    console.log('user roles: ');
+    console.log(roles);
+
+    vmProfile.userRoles = [];
+    for (i=0; i<roles.length; i++)
+        vmProfile.userRoles.push(JSON.stringify(roles[i].id));
 });
 
 socket.on('get userdata', function (data) {

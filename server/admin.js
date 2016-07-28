@@ -178,6 +178,47 @@ module.exports = function (io, db, logger, auth) {
             });
         }
 
+        function getAllRoles(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.getAllRoles(con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+                socket.emit('get all roles', result);
+            });
+        }
+
+        function getRoles(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.getUserRoles(data.user_id, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+                socket.emit('get roles', result);
+            });
+        }
+
+        function editRoles(data) {
+            var dbDone;
+
+            runInSeries([
+                (cb) => { auth.verifyAdmin(data.token, cb); },
+                (isAdmin, cb) => { db.createConnection(cb); },
+                (con, done, cb) => { dbDone = done; db.editRoles(data.user_id, data.role_ids, con, cb); },
+            ], function (err, result) {
+                if (err) throw err;
+                dbDone();
+            });
+        }
+
         socket.on('get users', getUsers);
         socket.on('get locations', getLocations);
         socket.on('get items', getItems);
@@ -189,6 +230,9 @@ module.exports = function (io, db, logger, auth) {
         socket.on('delete user as admin', deleteUser);
         socket.on('delete location as admin', deleteLocation);
         socket.on('delete item as admin', deleteItem);
+        socket.on('get all roles', getAllRoles);
+        socket.on('get roles', getRoles);
+        socket.on('edit roles as admin', editRoles);
     }
 
     io.on('connection', listen);

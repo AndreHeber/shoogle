@@ -97,7 +97,10 @@ module.exports = function (logger, ready) {
 
     dbThreadPool.addUser = function (user, hash, db, callback) {
         db.query('insert into users (username, password) values ($1, $2) returning user_id;', [user, hash], (err, result) => {
-            callback(err, result.rows[0]);
+            var user_id = result.rows[0].user_id;
+            db.query('insert into user_role (user_id, role_id) values ($1, (select role_id from roles where role = $2));', [user_id, 'user'], (err, result) => {
+                callback(err, user_id); 
+            });
         });
     }
 
@@ -109,8 +112,10 @@ module.exports = function (logger, ready) {
     }
 
     dbThreadPool.deleteUser = function (user_id, db, callback) {
-        db.query('delete from users where user_id = $1;', [user_id], (err, result) => {
-            callback(err);
+        db.query('delete from user_role where user_id = $1;', [user_id], (err, result) => {
+            db.query('delete from users where user_id = $1;', [user_id], (err, result) => {
+                callback(err);
+            });
         });
     }
 
@@ -230,19 +235,46 @@ module.exports = function (logger, ready) {
     }
 
     dbThreadPool.getUserRoles = function (user_id, db, callback) {
-        var sql = 'select role from roles ' +
+        var sql = 'select roles.role_id, role from roles ' +
             'inner join user_role on (user_role.role_id = roles.role_id) ' +
             'where user_id = $1;'
         db.query(sql, [user_id], (err, result) => {
             var roles = [];
 
             if (err) throw err;
-            if (typeof result.rows[0] === 'undefined') roles = ['user'];
             else {
                 for (var i = 0; i < result.rows.length; i++)
-                    roles.push(result.rows[i].role);
+                    roles.push({id: result.rows[i].role_id, role: result.rows[i].role});
             }
             callback(err, roles);
+        });
+    }
+
+    dbThreadPool.getAllRoles = function (db, callback) {
+        db.query('select role_id, role from roles;', [], (err, result) => {
+            var roles = [];
+
+            for (var i = 0; i < result.rows.length; i++)
+                roles.push({id: result.rows[i].role_id, role: result.rows[i].role});
+
+            callback(err, roles);
+        });
+    }
+
+    dbThreadPool.editRoles = function(user_id, role_ids, db, callback) {
+        db.query('delete from user_role where user_id = $1;', [user_id], (err, result) => {
+
+            function insert (loop) {
+                if (loop < role_ids.length) {
+                    db.query('insert into user_role (user_id, role_id) values ($1, $2);', [user_id, role_ids[loop]], (err) => {
+                        if (err) throw err;
+                        insert(loop + 1);
+                    });
+                }
+            }
+
+            insert(0);
+            callback(err);
         });
     }
 

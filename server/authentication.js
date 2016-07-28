@@ -113,7 +113,7 @@ module.exports = function (io, db, logger) {
                 checkUserExistsInDb,
                 createUserInDb,
                 (_user_id, cb) => { user_id = _user_id; generateToken(_user_id, cb); },
-                (token, cb) => { db.storeToken(user_id, token, cb); }
+                (token, cb) => { db.storeToken(user_id, token, dbConnection, cb); }
             ], function (err, added) {
                 if (err == 'user exists') err = '';
                 if (err) throw err;
@@ -283,7 +283,7 @@ module.exports = function (io, db, logger) {
         ], function (err, roles) {
             if (err) throw err;
             for (i=0; i<roles.length; i++) {
-                if (roles[i] == 'admin') {
+                if (roles[i].role == 'admin') {
                     err = false;
                     isAdmin = true;
                     break;

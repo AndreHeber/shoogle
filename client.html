@@ -110,7 +110,7 @@
                             <div v-for="user in users">
                                 <form class="form-inline">
                                     <div class="form-group">
-                                        <a href="#" v-on:click.prevent="getLocations(user)">{{user.name}}</a>
+                                        <a href="#" v-on:click.prevent="getRolesAndLocations(user)">{{user.name}}</a>
                                         <label for="adminInputEmail" style="margin: 5px;">Update Email address</label>
                                         <input v-model="user.newName" type="email" class="form-control" id="adminInputEmail" placeholder="Email">
                                         <label for="adminInputPassword" style="margin: 5px; margin-top: 10px;">and Password</label>
@@ -120,6 +120,17 @@
                                     </div>
                                 </form>
                             </div>
+
+                            <form v-show="currentUser" class="form-inline">
+                                <div class="form-group">
+                                    Roles:
+                                    <span v-for="role in roles">
+                                        <input type="checkbox" value="{{role.id}}" id="{{role.id}}" v-model="userRoles">
+                                        <label for={{role.id}}>{{role.role}}</label>
+                                    </span>
+                                    <button v-on:click.prevent="editRoles" class="btn btn-default"><span class="glyphicon glyphicon-save" aria-hidden="true"></span></button>
+                                </div>
+                            </form>
 
                             <form v-show="currentUser" class="form-inline">
                                 <div class="form-group">
