@@ -51,7 +51,8 @@ module.exports = function (logger, ready) {
             'itemname text not null,' +
             'itemdescription text not null,' +
             'itempicture text,' +
-            'itemprice integer not null' +
+            'itemprice integer not null,' +
+            'searchvector tsvector not null' +
             ');',
             'create table if not exists ratings (' +
             'rating_id serial primary key,' +
@@ -196,14 +197,16 @@ module.exports = function (logger, ready) {
     }
 
     dbThreadPool.addItem = function (user_id, location_id, item, db, callback) {
-        var sql = 'insert into items (user_id, location_id, itemname, itemdescription, itemprice) values ($1, $2, $3, $4, $5) returning item_id;';
+        var sql = "insert into items (user_id, location_id, itemname, itemdescription, itemprice, searchvector) values " +
+                  "($1, $2, $3, $4, $5, setweight(to_tsvector('english', $3), 'B') || to_tsvector('english', $4)) returning item_id;";
         db.query(sql, [user_id, location_id, item.name, item.description, item.price], (err, result) => {
             callback(err, result.rows[0]);
         });
     }
 
     dbThreadPool.editItem = function (item, db, callback) {
-        var sql = 'update items set itemname = $1, itemdescription = $2, itemprice = $3 where item_id = $4;';
+        var sql = "update items set itemname = $1, itemdescription = $2, itemprice = $3, " + 
+                  "setweight(to_tsvector('english', $1), 'B') || to_tsvector('english', $2) where item_id = $4;";
         db.query(sql, [item.name, item.description, item.price, item.id], (err, result) => {
             callback(err);
         });
@@ -275,6 +278,21 @@ module.exports = function (logger, ready) {
 
             insert(0);
             callback(err);
+        });
+    }
+
+    dbThreadPool.suggestItems = function(item, db, callback) {
+        var sql = "select itemname as item, ts_rank(searchvector, keywords, 8) as rank from items, to_tsquery($1) keywords " +
+                  "where keywords @@ searchvector order by rank desc";
+        db.query(sql, [item], (err, result) => {
+            var items = [];
+
+            if (err) throw err;
+            for (i=0; i<result.rows.length; i++) {
+                items.push(result.rows[i].item);
+            }
+
+            callback(items);
         });
     }
 

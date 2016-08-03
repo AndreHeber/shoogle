@@ -5,6 +5,7 @@
     <title>Shoogle</title>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.css">
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <style>
         h1,
@@ -65,7 +66,7 @@
                 <h2>Search</h2>
                 <div id="search">
                     <form v-on:submit.prevent="searchItem" class="form-group" style="margin: 5px;">
-                        <input v-model="search" type="text" class="form-control" id="inputSearch" placeholder="Search for books, etc...">
+                        <input v-model="search" debounce="300"" type="text" class="form-control" id="inputSearch" placeholder="Search for books, etc...">
                         <button v-on:click.prevent="searchItem" type="submit" class="btn btn-default" style="margin-top: 10px;">Search</button>
                     </form>
                 </div>
@@ -214,6 +215,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/1.4.1/dexie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=map.initMap"></script>
     <script src="/client/client.js"></script>
     <script src="/client/database.js"></script>
