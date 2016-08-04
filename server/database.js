@@ -233,10 +233,6 @@ module.exports = function (logger, ready) {
         });
     }
 
-    dbThreadPool.searchItem = function (item, db, callback) {
-        //db.query('select *')
-    }
-
     dbThreadPool.getUserRoles = function (user_id, db, callback) {
         var sql = 'select roles.role_id, role from roles ' +
             'inner join user_role on (user_role.role_id = roles.role_id) ' +
@@ -286,13 +282,31 @@ module.exports = function (logger, ready) {
                   "where keywords @@ searchvector order by rank desc";
         db.query(sql, [item], (err, result) => {
             var items = [];
-
-            if (err) throw err;
             for (i=0; i<result.rows.length; i++) {
                 items.push(result.rows[i].item);
             }
 
-            callback(items);
+            callback(err, items);
+        });
+    }
+
+    dbThreadPool.searchItem = function (item, db, callback) {
+        var sql = "select itemname, itemdescription, itemprice, latitude, longitude, ts_rank(searchvector, keywords, 8) as rank from "+ 
+                  "items, locations, to_tsquery($1) keywords " +
+                  "where keywords @@ searchvector and items.location_id = locations.location_id order by rank desc";
+        db.query(sql, [item], (err, result) => {
+            var items = [];
+            for (i=0; i<result.rows.length; i++) {
+                items.push({
+                    name: result.rows[i].itemname,
+                    description: result.rows[i].itemdescription,
+                    price: result.rows[i].itemprice,
+                    latitude: result.rows[i].latitude,
+                    longitude: result.rows[i].longitude
+                });
+            }
+
+            callback(err, items);
         });
     }
 

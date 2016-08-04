@@ -17,7 +17,7 @@ module.exports = function (io, db, logger, auth) {
             runInSeries([
                 db.createConnection,
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
-                (cb) => { db.searchItem(item, cb) },
+                (cb) => { db.searchItem(item, dbConnection, cb) },
                 sendFindings
             ], function (err, result) {
                 if (err) throw err;
@@ -30,8 +30,10 @@ module.exports = function (io, db, logger, auth) {
         var dbConnection, dbDone;
 
             function sendSuggestions(findings, callback) {
+                logger.log('info', 'suggestions for: ' + item);
+                logger.log('info', 'are ' + findings);
                 socket.emit('search suggestions', findings);
-                callback();
+                callback(false);
             }
 
             runInSeries([
@@ -43,7 +45,6 @@ module.exports = function (io, db, logger, auth) {
                 if (err) throw err;
                 dbDone();
             });
-            logger.log('info', 'suggestions for: ' + item);
         }
 
         function addLocation(clientData) {

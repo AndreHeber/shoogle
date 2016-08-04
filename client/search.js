@@ -3,38 +3,32 @@ var vmSearch = new Vue({
     data: {
         search: '',
     },
-    watch: {
-        'search': function (newVal, oldVal) {
-            if (newVal.length >= 2) {
-                socket.emit('search suggestions', newVal);
-            }
-        }
-    },
     methods: {
         searchItem: function () {
-            console.log('looking for: ' + this.search);
             socket.emit('search item', this.search);
         }
     }
 });
 
-vmSearch.choices = [];
-
-socket.on('search suggestions', function (data) {
-    vmSearch.choices = data;
-})
-
 new autoComplete({
     selector: 'input[id="inputSearch"]',
     minChars: 2,
+    delay: 300,
     source: function (term, suggest) {
-        term = term.toLowerCase();
-        var choices = ['ActionScript', 'AppleScript', 'Asp', 'Cobol', 'C']; // Auswahlliste
-        var matches = [];
+        term = term.toLowerCase() + ':*';
 
-        for (i=0; i<choices.length; i++)
-            if (~choices[i].toLowerCase().indexOf(term)) matches.push(choices[i]);
-        
-        suggest(matches);
+        socket.emit('search suggestions', term);
+        socket.on('search suggestions', function (data) {
+            if (data.length == 0) suggest([""]);
+            else suggest(data);
+        });
+    },
+    onSelect: function (e, term, item) {
+        vmSearch.search = term;
     }
-})
+});
+
+socket.on('search item', function(data) {
+    console.log('search result:');
+    console.log(data);
+});
