@@ -15,16 +15,31 @@ function initMap(self) {
         self.instance = new google.maps.Map(document.getElementById('map'), self.settings);
     }
 
-    self.addMarker = function () {
+    self.addMarker = function (callback) {
         var marker = new google.maps.Marker({
             position: map.instance.getCenter(),
-            title: 'Hi!',
             map: map.instance,
             draggable: true,
-            animation: google.maps.Animation.DROP,
-            label: 'A'
+            animation: google.maps.Animation.DROP
         });
+
+        self.editMarker(marker, callback);
         self.markers.push(marker);
+    }
+
+    self.editMarker = function (marker, callback) {
+        var content = 'Please move me and give me a name: <input id="entryLocationName" type="entry" placeholder="Home"><button id="submitLocationName">Ok</button>';
+        var infoWindow = new google.maps.InfoWindow({
+            content: content
+        });
+        infoWindow.open(map.instance, marker);
+
+        infoWindow.addListener('domready', function () {
+            document.getElementById("submitLocationName").addEventListener("click", function () {
+                marker.name = document.getElementById("entryLocationName").value;
+                callback(marker);
+            });
+        });
     }
 
     self.setGeolocationPosition = function() {

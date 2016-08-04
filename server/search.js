@@ -47,26 +47,8 @@ module.exports = function (io, db, logger, auth) {
             });
         }
 
-        function addLocation(clientData) {
-            var dbConnection, dbDone, user;
-
-            runInSeries([
-                (cb) => { auth.verifyUser(clientData.token.token, cb); },
-                (username, cb) => { user = username; cb(); },
-                db.createConnection,
-                (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
-                (cb) => { db.getUser(user, dbConnection, cb); },
-                (userData, cb) => { db.addLocation(userData.id, clientData, dbConnection, cb); }
-            ], function (err, result) {
-                if (err) throw err;
-                logger.log('info', 'location for user ' + user + ' added');
-                dbDone();
-            });
-        }
-
         socket.on('search item', search);
         socket.on('search suggestions', suggest);
-        socket.on('add location', addLocation);
     }
 
     io.on('connection', listen);

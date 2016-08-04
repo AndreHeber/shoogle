@@ -7,6 +7,7 @@ var pool = require('./server/database')(logger, startServer);
 var auth = require('./server/authentication')(io, pool, logger);
 var search = require('./server/search')(io, pool, logger, auth);
 var admin = require('./server/admin')(io, pool, logger, auth);
+var admin = require('./server/user')(io, pool, logger, auth);
 
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname+'/client.html'));

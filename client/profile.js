@@ -1,3 +1,7 @@
+function saveLocation() {
+    socket.emit('')
+}
+
 var vmProfile = new Vue({
     el: '#profile',
     data: {
@@ -23,18 +27,30 @@ var vmProfile = new Vue({
     },
     methods: {
         setLocation: function () {
-            // just for testing
-            console.log('add location');
             var self = this;
             db.getToken(function (err, token) {
-                console.log(err);
-                console.log(token);
                 if (err) self.status = 'You must be logged in!';
                 else {
                     self.status = 'Save Location';
-                    map.addMarker();
+                    map.addMarker(function(marker) {
+                        console.log({
+                            token: token.token,
+                            location: {
+                                name: marker.name,
+                                latitude: marker.getPosition().lat(),
+                                longitude: marker.getPosition().lng()
+                            }
+                        });
+                        socket.emit('add location', {
+                            token: token.token,
+                            location: {
+                                name: marker.name,
+                                latitude: marker.getPosition().lat(),
+                                longitude: marker.getPosition().lng()
+                            }
+                        });
+                    });
                 }
-                // socket.emit('add location', {token: token.token, name: 'somewhere', latitude: 42.0, longitude: 42.0})
             });
             // this.status = 'bla';
         },
@@ -206,5 +222,10 @@ socket.on('get roles', function (roles) {
 
 socket.on('get userdata', function (data) {
     console.log('userdata: ');
+    console.log(data);
+});
+
+socket.on('add location', function (data) {
+    console.log('location id:');
     console.log(data);
 });
