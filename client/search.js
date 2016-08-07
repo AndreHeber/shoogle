@@ -19,8 +19,10 @@ new autoComplete({
 
         socket.emit('search suggestions', term);
         socket.on('search suggestions', function (data) {
-            if (data.length == 0) suggest([""]);
-            else suggest(data);
+            var err = data.err;
+            var suggestions = data.result;
+            if (suggestions.length == 0) suggest([""]);
+            else suggest(suggestions);
         });
     },
     onSelect: function (e, term, item) {
@@ -30,5 +32,5 @@ new autoComplete({
 
 socket.on('search item', function(data) {
     console.log('search result:');
-    console.log(data);
+    console.log(data.result);
 });

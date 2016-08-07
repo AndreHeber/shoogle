@@ -64,7 +64,7 @@ module.exports = function (io, db, logger) {
             }
 
             var token = createJWT(user_id, signingKey);
-            socket.emit('store token', token);
+            socket.emit('store token', {err: 0, result: token});
             auth.tokenCache[token] = user_id;
             setTimeout(() => {auth.tokenCache[token] = undefined;}, 1000 * 60 * 60); // clear cached token after 1 hour 
             auth.hashPassword(token, (err, hashedToken) => {
@@ -74,7 +74,7 @@ module.exports = function (io, db, logger) {
 
         function getAndSendUserRoles(user_id, db, dbCon, callback) {
             db.getUserRoles(user_id, dbCon, function (err, roles) {
-                socket.emit('roles', roles);
+                socket.emit('roles', {err: err, result: roles});
             });
         }
 
@@ -89,11 +89,9 @@ module.exports = function (io, db, logger) {
             function checkUserExistsInDb(userExists, callback) {
                 if (userExists) {
                     logger.log('info', 'User ' + data.username + ' tries to register with already assigned username');
-                    socket.emit('register user', 'username assigned');
+                    socket.emit('register user', {err: 1, result: 'username assigned'});
                     callback('user exists');
                 } else {
-                    logger.log('info', 'reqister new user ' + data.username);
-                    socket.emit('register user', 'register ok');
                     callback();
                 }
             }
@@ -115,9 +113,12 @@ module.exports = function (io, db, logger) {
                 (_user_id, cb) => { user_id = _user_id; generateToken(_user_id, cb); },
                 (token, cb) => { db.storeToken(user_id, token, dbConnection, cb); }
             ], function (err, added) {
-                if (err == 'user exists') err = '';
-                if (err) throw err;
                 dbDone();
+                if (err == 'user exists') err = '';
+                if (!err) {
+                    logger.log('info', 'reqister new user ' + data.username);
+                    socket.emit('register user', {err: err, result: user_id});
+                }
             });
         }
 
@@ -130,7 +131,7 @@ module.exports = function (io, db, logger) {
                     if (user_id == 0) {
                         callback('user not exists');
                         logger.log('info', 'unregistered user tries to login');
-                        socket.emit('login user', 'unknown user');
+                        socket.emit('login user', {err: 1, result: 'unknown user'});
                     } else {
                         callback(err, user_id);
                     }
@@ -141,11 +142,11 @@ module.exports = function (io, db, logger) {
                 bcrypt.compare(data.password, hashedPwFromDb, (err, result) => {
                     if (result) {
                         logger.log('info', 'user ' + data.username + ' is logging in');
-                        socket.emit('login user', 'login ok');
+                        socket.emit('login user', {err: err, result: user_id});
                         callback();
                     } else {
                         logger.log('info', 'user ' + data.username + ' has wrong password');
-                        socket.emit('login user', 'wrong password');
+                        socket.emit('login user', {err: 1, result: 'wrong password'});
                         callback('wrong password');
                     }
                 });
@@ -161,14 +162,14 @@ module.exports = function (io, db, logger) {
                 (hashedToken, cb) => { db.storeToken(user_id, hashedToken, dbConnection, cb); },
                 (cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
             ], (err, login) => {
+                dbDone();
                 if (err == 'user not exists') err = '';
                 if (err == 'wrong password') err = '';
                 if (err) throw err;
-                dbDone();
             });
         }
 
-        function loginToken(data) {
+        function loginToken(token) {
             var dbConnection, dbDone;
             var user_id;
 
@@ -178,20 +179,20 @@ module.exports = function (io, db, logger) {
             }
 
             function compareTokens(hashedToken, callback) {
-                bcrypt.compare(data.token, hashedToken, (err, result) => {
+                bcrypt.compare(token, hashedToken, (err, result) => {
                     if (result) {
                         logger.log('info', 'User with id ' + user_id + ' logging in with token');
-                        socket.emit('login token', 'login ok');
+                        socket.emit('login token', {err: 0, result: user_id});
                     } else {
                         logger.log('warning', 'token mismatch');
-                        socket.emit('login token', 'token mismatch');
+                        socket.emit('login token', {err: 1, result: 'token mismatch'});
                     }
                     callback(err);
                 });
             }
 
             runInSeries([
-                (cb) => { nJwt.verify(data.token, signingKey, cb); },
+                (cb) => { nJwt.verify(token, signingKey, cb); },
                 checkVerification,
                 db.createConnection,
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
@@ -201,18 +202,18 @@ module.exports = function (io, db, logger) {
                 (hashedToken, cb) => { db.storeToken(user_id, hashedToken, dbConnection, cb); },
                 (cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
             ], (err, login) => {
+                dbDone();
                 if (err == 'token invalid') err = '';
                 else if (err == 'token not found') {
                     logger.log('warn', err);
-                    socket.emit('login token', 'token invalid');
+                    socket.emit('login token', {err: 1, result: 'token invalid'});
                     err = '';
                 } else if (err == 'JwtParseError: Jwt cannot be parsed') {
                     logger.log('warn', err);
-                    socket.emit('login token', 'token invalid');
+                    socket.emit('login token', {err: 1, result: 'token invalid'});
                     err = '';
                 } else {
                     if (err) throw err;
-                    dbDone();
                 }
             });
         }
@@ -254,14 +255,14 @@ module.exports = function (io, db, logger) {
                 (cb) => { db.getToken(user, dbConnection, cb); },
                 compareTokens
             ], function (err, result) {
+                dbDone();
                 if (err == 'token mismatch') err = '';
                 else if (err == 'token not found') {
                     logger.log('warn', err);
-                    socket.emit('login token', 'token invalid');
+                    socket.emit('login token', {err: 1, result: 'token invalid'});
                     err = '';
                 } else if (err) throw err;
                 else error = '';
-                dbDone();
                 callback(error, user);
             });
         } else {

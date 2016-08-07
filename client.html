@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/notie/3.9.1/notie.min.css">
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <style>
         h1,
@@ -87,6 +88,11 @@
                 </div>
 
                 <hr />
+
+                <!--
+                <video height="300" id="localVideo"></video>
+                <div id="remotesVideos"></div>
+                -->
 
                 <h2>Profile</h2>
                 <div id="profile">
@@ -216,13 +222,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/1.4.1/dexie.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/notie/3.9.1/notie.min.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=map.initMap"></script>
+    
     <script src="/client/client.js"></script>
     <script src="/client/database.js"></script>
     <script src="/client/authentification.js"></script>
     <script src="/client/gmaps.js"></script>
     <script src="/client/search.js"></script>
     <script src="/client/profile.js"></script>
+    <!-- 
+        <script src="/client/video.js"></script>
+        <script src="https://simplewebrtc.com/latest-v2.js"></script> 
+    -->
 </body>
 
 </html>

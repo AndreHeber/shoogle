@@ -41,34 +41,32 @@ function initAuth(self) {
 
     self.loginUser = function (data) {
         console.log('data: ' + data);
-        if (data == 'login ok') loginOk();
-        else if (data == 'unknown user') unknownUser();
-        else if (data == 'wrong password') wrongPassword();
+        if (data.err == 0) loginOk();
+        else if (data.result == 'unknown user') unknownUser();
+        else if (data.result == 'wrong password') wrongPassword();
     }
 
     self.registerUser = function (data) {
         console.log('data: ' + data);
-        if (data == 'register ok') loginOk();
-        else if (data == 'username assigned') usernameAssigned();
+        if (data.err == 0) loginOk();
+        else if (data.result == 'username assigned') usernameAssigned();
     }
 
     self.loginToken = function (data) {
-        if (data == 'login ok') loginOk();
-        else if (data == 'token invalid') tokenInvalid();
+        if (data.err == 0) loginOk();
+        else if (data.result == 'token invalid') tokenInvalid();
         else wrongToken();
     }
 
     self.getToken = function (err, token) {
-        if (token) {
+        if (token)
             socket.emit('login token', token);
-            console.log('transmit token');
-        } else {
-            console.log('no token');
-        }
     }
 
     self.storeToken = function (data) {
-        db.addToken(data);
+        var err = data.err;
+        var token = data.result;
+        db.addToken(token);
         console.log('store token');
         socket.removeListener('store token', self.storeToken);
     }

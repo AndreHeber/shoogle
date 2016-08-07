@@ -10,7 +10,7 @@ module.exports = function (io, db, logger, auth) {
         var dbConnection, dbDone;
 
             function sendFindings(findings, callback) {
-                socket.emit('search item', findings);
+                socket.emit('search item', {err: 0, result: findings});
                 callback();
             }
 
@@ -20,8 +20,8 @@ module.exports = function (io, db, logger, auth) {
                 (cb) => { db.searchItem(item, dbConnection, cb) },
                 sendFindings
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
             });
             logger.log('info', 'search for: ' + item);
         }
@@ -32,7 +32,7 @@ module.exports = function (io, db, logger, auth) {
             function sendSuggestions(findings, callback) {
                 logger.log('info', 'suggestions for: ' + item);
                 logger.log('info', 'are ' + findings);
-                socket.emit('search suggestions', findings);
+                socket.emit('search suggestions', {err: 0, result: findings});
                 callback(false);
             }
 

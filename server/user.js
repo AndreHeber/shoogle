@@ -8,7 +8,7 @@ module.exports = function (io, db, logger, auth) {
             var user_id, dbDone;
 
             function sendLocation(location_id, callback) {
-                socket.emit('add location', location_id);
+                socket.emit('add location', {err: 0, result: location_id});
                 callback();
             }
 
@@ -29,13 +29,13 @@ module.exports = function (io, db, logger, auth) {
             var dbConnection, dbDone;
 
             function sendUsers(users, callback) {
-                socket.emit('get users', users);
+                socket.emit('get users', {err: 0, result:users});
                 logger.log('info', 'search for: ' + users);
                 callback();
             }
 
             runInSeries([
-                (cb) => { auth.verifyAdmin(token.token, cb); },
+                (cb) => { auth.verifyAdmin(token, cb); },
                 (username, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
                 (cb) => { db.getUsers(dbConnection, cb); },

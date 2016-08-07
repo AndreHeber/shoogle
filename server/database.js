@@ -108,14 +108,14 @@ module.exports = function (logger, ready) {
     dbThreadPool.editUser = function (user, db, callback) {
         var sql = 'update users set username = $1, password = $2 where user_id = $3;';
         db.query(sql, [user.name, user.password, user.id], (err, result) => {
-            callback(err);
+            callback(err, result);
         });
     }
 
     dbThreadPool.deleteUser = function (user_id, db, callback) {
         db.query('delete from user_role where user_id = $1;', [user_id], (err, result) => {
             db.query('delete from users where user_id = $1;', [user_id], (err, result) => {
-                callback(err);
+                callback(err, result);
             });
         });
     }
@@ -172,13 +172,13 @@ module.exports = function (logger, ready) {
     dbThreadPool.editLocation = function (location, db, callback) {
         var sql = 'update locations set locationname = $1, latitude = $2, longitude = $3 where location_id = $4;';
         db.query(sql, [location.name, location.latitude, location.longitude, location.id], (err, result) => {
-            callback(err);
+            callback(err, result);
         });
     }
 
     dbThreadPool.deleteLocation = function (location_id, db, callback) {
         db.query('delete from locations where location_id = $1;', [location_id], (err, result) => {
-            callback(err);
+            callback(err, result);
         });
     }
 
@@ -208,13 +208,13 @@ module.exports = function (logger, ready) {
         var sql = "update items set itemname = $1, itemdescription = $2, itemprice = $3, " + 
                   "setweight(to_tsvector('english', $1), 'B') || to_tsvector('english', $2) where item_id = $4;";
         db.query(sql, [item.name, item.description, item.price, item.id], (err, result) => {
-            callback(err);
+            callback(err, result);
         });
     }
 
     dbThreadPool.deleteItem = function (item_id, db, callback) {
         db.query('delete from items where item_id = $1;', [item_id], (err, result) => {
-            callback(err);
+            callback(err, result);
         });
     }
 
@@ -261,19 +261,21 @@ module.exports = function (logger, ready) {
     }
 
     dbThreadPool.editRoles = function(user_id, role_ids, db, callback) {
+        var result;
         db.query('delete from user_role where user_id = $1;', [user_id], (err, result) => {
 
             function insert (loop) {
                 if (loop < role_ids.length) {
-                    db.query('insert into user_role (user_id, role_id) values ($1, $2);', [user_id, role_ids[loop]], (err) => {
+                    db.query('insert into user_role (user_id, role_id) values ($1, $2);', [user_id, role_ids[loop]], (err, _result) => {
                         if (err) throw err;
                         insert(loop + 1);
+                        result = _result;
                     });
                 }
             }
 
             insert(0);
-            callback(err);
+            callback(err, result);
         });
     }
 

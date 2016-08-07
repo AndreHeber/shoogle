@@ -7,61 +7,43 @@ module.exports = function (io, db, logger, auth) {
         function getUsers(token) {
             var dbConnection, dbDone;
 
-            function sendUsers(users, callback) {
-                socket.emit('get users', users);
-                logger.log('info', 'search for: ' + users);
-                callback();
-            }
-
             runInSeries([
                 (cb) => { auth.verifyAdmin(token, cb); },
                 (username, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbConnection = con; dbDone = done; cb(); },
-                (cb) => { db.getUsers(dbConnection, cb); },
-                sendUsers
-            ], function (err, result) {
-                if (err) throw err;
+                (cb) => { db.getUsers(dbConnection, cb); }
+            ], function (err, users) {
                 dbDone();
+                if (err) throw err;
+                socket.emit('get users', {err: err, result: users});
             });
         }
 
         function getLocations(data) {
             var dbCon, dbDone;
 
-            function sendLocations(locations, callback) {
-                socket.emit('get locations', locations);
-                logger.log('info', 'search for: ' + locations);
-                callback();
-            }
-
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbCon = con; dbDone = done; db.getLocations(data.user_id, con, cb); },
-                sendLocations
-            ], function (err, result) {
-                if (err) throw err;
+            ], function (err, locations) {
                 dbDone();
+                if (err) throw err;
+                socket.emit('get locations', {err: err, result: locations});
             });
         }
 
         function getItems(data) {
             var dbDone;
 
-            function sendItems(items, callback) {
-                socket.emit('get items', items);
-                logger.log('info', 'search for: ' + items);
-                callback();
-            }
-
             runInSeries([
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
-                (con, done, cb) => { dbDone = done; db.getItems(data.location_id, con, cb); },
-                sendItems
-            ], function (err, result) {
-                if (err) throw err;
+                (con, done, cb) => { dbDone = done; db.getItems(data.location_id, con, cb); }
+            ], function (err, items) {
                 dbDone();
+                if (err) throw err;
+                socket.emit('get items', {err: err, result: items});
             });
         }
 
@@ -72,9 +54,10 @@ module.exports = function (io, db, logger, auth) {
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.addLocation(data.user_id, data.location, con, cb); }
-            ], function (err, result) {
-                if (err) throw err;
+            ], function (err, location_id) {
                 dbDone();
+                if (err) throw err;
+                socket.emit('add location as admin', {err: err, result: location_id});
             });
         }
 
@@ -85,9 +68,10 @@ module.exports = function (io, db, logger, auth) {
                 (cb) => { auth.verifyAdmin(data.token, cb); },
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.addItem(data.user_id, data.location_id, data.item, con, cb); }
-            ], function (err, result) {
-                if (err) throw err;
+            ], function (err, item_id) {
                 dbDone();
+                if (err) throw err;
+                socket.emit('add item as admin', {err: err, result: item_id});
             });
         }
 
@@ -108,8 +92,9 @@ module.exports = function (io, db, logger, auth) {
                 db.createConnection,
                 (con, done, cb) => { dbDone = done; db.editUser(data.user, con, cb); }
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
+                socket.emit('edit user as admin', {err: err, result: result});
             });
         }
 
@@ -121,8 +106,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.editLocation(data.location, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
+                socket.emit('edit location as admin', {err: err, result: result});
             });
         }
 
@@ -134,8 +120,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.editItem(data.item, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
+                socket.emit('edit item as admin', {err: err, result: result});
             });
         }
 
@@ -147,8 +134,8 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.deleteUser(data.id, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                socket.emit('delete user as admin', {err: err, result: result});
             });
         }
 
@@ -160,8 +147,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.deleteLocation(data.id, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
+                socket.emit('delete location as admin', {err: err, result: result});
             });
         }
 
@@ -173,8 +161,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.deleteItem(data.id, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
+                socket.emit('delete item as admin', {err: err, result: result});
             });
         }
 
@@ -186,9 +175,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.getAllRoles(con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
-                socket.emit('get all roles', result);
+                if (err) throw err;
+                socket.emit('get all roles', {err: err, result: result});
             });
         }
 
@@ -200,9 +189,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.getUserRoles(data.user_id, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
-                socket.emit('get roles', result);
+                if (err) throw err;
+                socket.emit('get roles', {err: err, result: result});
             });
         }
 
@@ -214,8 +203,9 @@ module.exports = function (io, db, logger, auth) {
                 (isAdmin, cb) => { db.createConnection(cb); },
                 (con, done, cb) => { dbDone = done; db.editRoles(data.user_id, data.role_ids, con, cb); },
             ], function (err, result) {
-                if (err) throw err;
                 dbDone();
+                if (err) throw err;
+                socket.emit('edit roles as admin', {err: err, result: result});
             });
         }
 

@@ -34,28 +34,27 @@ var vmProfile = new Vue({
                     self.status = 'Save Location';
                     map.addMarker(function(marker) {
                         console.log({
-                            token: token.token,
+                            token: token,
                             location: {
                                 name: marker.name,
                                 latitude: marker.getPosition().lat(),
                                 longitude: marker.getPosition().lng()
                             }
                         });
-                        socket.emit('add location', {
-                            token: token.token,
-                            location: {
-                                name: marker.name,
-                                latitude: marker.getPosition().lat(),
-                                longitude: marker.getPosition().lng()
-                            }
+                        var location = {
+                            name: marker.name,
+                            latitude: marker.getPosition().lat(),
+                            longitude: marker.getPosition().lng()
+                        };
+                        db.addLocation(location, function (err, data) {
+                            console.log('location id:');
+                            console.log(data);
                         });
                     });
                 }
             });
-            // this.status = 'bla';
         },
         setGeolocation: function () {
-            console.log('set geolocation');
             map.setGeolocationPosition();
         },
         getRolesAndLocations: function (user) {
@@ -63,169 +62,107 @@ var vmProfile = new Vue({
             this.currentLocation = '';
             this.locations = [];
             this.items = [];
-            db.getToken(function (err, token) {
-                socket.emit('get all roles', {token: token.token});
-                socket.emit('get roles', {token: token.token, user_id: user.id});
-                socket.emit('get locations', {token: token.token, user_id: user.id});
+            db.getAllRoles(function (err, roles) {
+                vmProfile.roles = roles;
+            });
+            db.getRoles(user.id, function (err, roles) {
+                vmProfile.userRoles = [];
+                for (i=0; i<roles.length; i++)
+                    vmProfile.userRoles.push(JSON.stringify(roles[i].id));
+            });
+            db.getLocations(user.id, function (err, locations) {
+                vmProfile.locations = locations;
             });
         },
         editRoles: function () {
             var self = this;
-            db.getToken(function (err, token) {
-                socket.emit('edit roles as admin', {token: token.token, user_id: self.currentUser, role_ids: self.userRoles});
-            });
+            db.editRolesAsAdmin(self.currentUser, self.userRoles);
         },
         getItems: function (location) {
             this.currentLocation = location.id;
             this.items = [];
-            db.getToken(function (err, token) {
-                socket.emit('get items', {token: token.token, location_id: location.id});
+            db.getItems(location.id, function (err, items) {
+                vmProfile.items = items;
             });
         },
         editUser: function (user) {
-            db.getToken(function (err, token) {
-                socket.emit('edit user as admin', {
-                    token: token.token,
-                    user: {
-                        id: user.id,
-                        name: user.newName,
-                        password: user.password
-                    }
-                });
-            });
+            db.editUserAsAdmin(user.id, user.newName, user.password);
         },
         deleteUser: function (user) {
-            db.getToken(function (err, token) {
-                socket.emit('delete user as admin', {token: token.token, id: user.id});
+            var users = this.users;
+            db.deleteUserAsAdmin(user.id, function (err, result) {
+                if (err) {
+                    notie.alert(3, 'Deletion of user failed!', 2);
+                } else {
+                    for (i=0; i<users.length; i++) {
+                        if (users[i].id == user.id) {
+                            users.splice(i, 1);
+                        }
+                    }
+                    notie.alert(1, 'User deleted!', 2);
+                }
             });
         },
         addUser: function () {
-            socket.emit('register user', { username: this.username, password: this.password });
+            var user = {id: 0, name: this.username};
+            this.users.push(user);
+            db.addUser(this.username, this.password, function (err, user_id) {
+                user.id = user_id;
+                notie.alert(1, 'User added!', 2);
+            });
         },
         editLocation: function (location) {
-            console.log('edit location:');
-            console.log(location);
-            db.getToken(function (err, token) {
-                socket.emit('edit location as admin', {token: token.token, location: location});
-            });
+            db.editLocationAsAdmin(location);
         },
         deleteLocation: function (location) {
-            console.log('delete location:');
-            console.log(location);
-            db.getToken(function (err, token) {
-                socket.emit('delete location as admin', {token: token.token, id: location.id});
-            });
+            db.deleteLocationAsAdmin(location.id);
         },
         addLocation: function () {
-            var self = this;
-            db.getToken(function (err, token) {
-                socket.emit('add location as admin', {
-                    token: token.token,
-                    user_id: self.currentUser,
-                    location: {
-                        name: self.locationname,
-                        latitude: self.latitude,
-                        longitude: self.longitude
-                    }
-                });
-            });
+            var location = {
+                name: self.locationname,
+                latitude: self.latitude,
+                longitude: self.longitude
+            };
+            db.addLocationAsAdmin(this.currentUser, location);
+            this.locations.push(location);
         },
         editItem: function (item) {
-            console.log('edit item:');
-            console.log(item);
-            db.getToken(function (err, token) {
-                socket.emit('edit item as admin', {token: token.token, item: item});
-            });
+            db.editItemAdAdmin(item);
         },
         deleteItem: function (item) {
-            console.log('delete item:');
-            console.log(item);
-            db.getToken(function (err, token) {
-                socket.emit('delete item as admin', {token: token.token, id: item.id});
-            });
+            db.deleteItemAdAdmin(item.id);
         },
         addItem: function () {
-            var self = this;
-            db.getToken(function (err, token) {
-                socket.emit('add item as admin', {
-                    token: token.token,
-                    user_id: self.currentUser,
-                    location_id: self.currentLocation,
-                    item: {
-                        name: self.itemname,
-                        description: self.itemdescription,
-                        price: self.itemprice
-                    }
-                });
-            });
+            var item = {
+                name: self.itemname,
+                description: self.itemdescription,
+                price: self.itemprice
+            };
+            db.addItemAsAdmin(this.currentUser, this.currentLocation, item);
+            this.items.push(item);
         }
     }
 });
 
 // get roles from server
 socket.on('roles', function (data) {
-    for (var i = 0; i < data.length; i++) {
+    var err = data.err;
+    var roles = data.result;
+    for (var i = 0; i < roles.length; i++) {
         console.log('login roles');
-        console.log(data);
-        if (data[i].role == 'admin') {
+        console.log(roles);
+        if (roles[i].role == 'admin') {
             vmProfile.showAdmin = true;
-            db.getToken(function (err, token) {
-                socket.emit('get users', token.token);
-                console.log('get users from server');
-            });
-        } else if (data[i].role == 'user') {
-            db.getToken(function (err, token) {
-                socket.emit('get userdata', token.token);
+            db.getUsers(function (err, users) {
+                vmProfile.users = [];
+                for (i=0; i<users.length; i++)
+                    vmProfile.users.push({id: users[i].id, name: users[i].name, newUsername: '', newPassword: ''});
+            })
+        } else if (roles[i].role == 'user') {
+            db.getUserdata(function (err, userdata) {
+                console.log('userdata: ');
+                console.log(userdata);
             });
         }
     }
-});
-
-socket.on('get users', function (users) {
-    console.log('users: ');
-    console.log(users);
-
-    vmProfile.users = [];
-    for (i=0; i<users.length; i++)
-        vmProfile.users.push({id: users[i].id, name: users[i].name, newUsername: '', newPassword: ''});
-});
-
-socket.on('get locations', function (locations) {
-    console.log('locations: ');
-    console.log(locations);
-
-    vmProfile.locations = locations;
-});
-
-socket.on('get items', function (items) {
-    console.log('items: ');
-    console.log(items);
-
-    vmProfile.items = items;
-});
-
-socket.on('get all roles', function (roles) {
-    console.log('all roles: ');
-    console.log(roles);
-
-    vmProfile.roles = roles;
-});
-
-socket.on('get roles', function (roles) {
-    console.log('user roles: ');
-    console.log(roles);
-
-    vmProfile.userRoles = [];
-    for (i=0; i<roles.length; i++)
-        vmProfile.userRoles.push(JSON.stringify(roles[i].id));
-});
-
-socket.on('get userdata', function (data) {
-    console.log('userdata: ');
-    console.log(data);
-});
-
-socket.on('add location', function (data) {
-    console.log('location id:');
-    console.log(data);
 });
