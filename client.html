@@ -99,7 +99,7 @@
                     <button v-on:click.prevent="setLocation" class="btn btn-default" style="margin-top: 10px;">{{btnText}}</button>
                     <button v-on:click.prevent="setGeolocation" class="btn btn-default" style="margin-top: 10px;">Set Current Position</button>                    {{status}}
 
-                    <template v-if="showAdmin">
+                    <template v-if="showUI.admin">
                         
                         <div class="container" style="width: 70%; height: 500; z-index: 10; position: fixed; top: 50px; left: 400px; background-color: rgba(250, 250, 250, 1.0);">
                             <h2>Admin Panel</h2>

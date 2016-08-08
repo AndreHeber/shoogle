@@ -224,6 +224,7 @@ module.exports = function (io, db, logger) {
     }
 
     auth.verifyUser = function (token, callback) {
+        var dbDone, dbConnection;
         var user;
         var error = 'user not verified';
 
@@ -255,7 +256,7 @@ module.exports = function (io, db, logger) {
                 (cb) => { db.getToken(user, dbConnection, cb); },
                 compareTokens
             ], function (err, result) {
-                dbDone();
+                if (dbDone) dbDone();
                 if (err == 'token mismatch') err = '';
                 else if (err == 'token not found') {
                     logger.log('warn', err);
@@ -282,6 +283,7 @@ module.exports = function (io, db, logger) {
             (_user_id, cb) => { user_id = _user_id; db.createConnection(cb); },
             (con, done, cb) => { dbDone = done; db.getUserRoles(user_id, con, cb); }
         ], function (err, roles) {
+            dbDone();
             if (err) throw err;
             for (i=0; i<roles.length; i++) {
                 if (roles[i].role == 'admin') {
@@ -290,7 +292,27 @@ module.exports = function (io, db, logger) {
                     break;
                 }
             }
+            callback(err, isAdmin);
+        });
+    }
+
+    auth.isAdmin = function (user_id, callback) {
+        var dbDone;
+        var err = true;
+        var isAdmin = false;
+
+        runInSeries([
+            (cb) => { db.createConnection(cb); },
+            (con, done, cb) => { dbDone = done; db.getUserRoles(user_id, con, cb); }
+        ], function (err, roles) {
             dbDone();
+            for (i=0; i<roles.length; i++) {
+                if (roles[i].role == 'admin') {
+                    err = false;
+                    isAdmin = true;
+                    break;
+                }
+            }
             callback(err, isAdmin);
         });
     }

@@ -2,7 +2,54 @@
 
 var runInSeries = require('async-waterfall');
 
-module.exports = function (io, db, logger, auth) {
+module.exports = function (io, db, logger, auth, commandChains) {
+
+    commandChains.add({
+        command: 'search item',
+        verifyUser: (data, next) => { next(null, true); },
+        isAllowed: (data, _, next) => { next(null, true); },
+        checkData: (data, next) => { next(null, true); },
+        prepareDataForDb: (data, next) => { next(null, data); },
+        dbCommand: (db, item, next) => {
+            var sql = "select itemname, itemdescription, itemprice, latitude, longitude, ts_rank(searchvector, keywords, 8) as rank from "+ 
+                      "items, locations, to_tsquery($1) keywords " +
+                      "where keywords @@ searchvector and items.location_id = locations.location_id order by rank desc";
+            db.query(sql, [item], next);
+        },
+        prepareDataForTransmit: (result, next) => { 
+            var items = [];
+            for (i=0; i<result.rows.length; i++) {
+                items.push({
+                    name: result.rows[i].itemname,
+                    description: result.rows[i].itemdescription,
+                    price: result.rows[i].itemprice,
+                    latitude: result.rows[i].latitude,
+                    longitude: result.rows[i].longitude
+                });
+            }
+            next(null, items);
+         }
+    });
+
+    commandChains.add({
+        command: 'search suggestions',
+        verifyUser: (data, next) => { next(null, true); },
+        isAllowed: (data, _, next) => { next(null, true); },
+        checkData: (data, next) => { next(null, true); },
+        prepareDataForDb: (data, next) => { next(null, data); },
+        dbCommand: (db, item, next) => {
+            var sql = "select itemname as item, ts_rank(searchvector, keywords, 8) as rank from items, to_tsquery($1) keywords " +
+                      "where keywords @@ searchvector order by rank desc";
+            db.query(sql, [item], next);
+        },
+        prepareDataForTransmit: (result, next) => {
+            var items = [];
+            for (i=0; i<result.rows.length; i++) {
+                items.push(result.rows[i].item);
+            }
+            next(null, items);
+         }
+    });
 
     function listen(socket) {
 
@@ -51,5 +98,5 @@ module.exports = function (io, db, logger, auth) {
         socket.on('search suggestions', suggest);
     }
 
-    io.on('connection', listen);
+    //io.on('connection', listen);
 }

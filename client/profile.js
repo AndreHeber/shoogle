@@ -2,6 +2,22 @@ function saveLocation() {
     socket.emit('')
 }
 
+function log(err, result) {
+    console.log(err);
+    console.log(result);
+}
+
+function sendAndListen(channel, data, callback) {
+    function call_back(data) {
+        callback(data.err, data.result);
+        socket.removeListener(channel, call_back);
+    }
+    socket.emit(channel, data);
+    if (callback != null) {
+        socket.on(channel, call_back);
+    }
+}
+
 var vmProfile = new Vue({
     el: '#profile',
     data: {
@@ -10,7 +26,10 @@ var vmProfile = new Vue({
         users: [],
         locations: [],
         items: [],
-        showAdmin: false,
+        showUI: {
+            admin: false,
+            user: false
+        },
         currentUser: '',
         currentLocation: '',
         username: '',
@@ -33,20 +52,16 @@ var vmProfile = new Vue({
                 else {
                     self.status = 'Save Location';
                     map.addMarker(function(marker) {
-                        console.log({
-                            token: token,
+                        var data = {
+                            token: auth.token,
+                            user_id: auth.user_id,
                             location: {
                                 name: marker.name,
                                 latitude: marker.getPosition().lat(),
                                 longitude: marker.getPosition().lng()
                             }
-                        });
-                        var location = {
-                            name: marker.name,
-                            latitude: marker.getPosition().lat(),
-                            longitude: marker.getPosition().lng()
-                        };
-                        db.addLocation(location, function (err, data) {
+                        }
+                        sendAndListen('add location', data, function (err, data) {
                             console.log('location id:');
                             console.log(data);
                         });
@@ -62,43 +77,71 @@ var vmProfile = new Vue({
             this.currentLocation = '';
             this.locations = [];
             this.items = [];
-            db.getAllRoles(function (err, roles) {
+            sendAndListen('get all roles', {token: auth.token}, function (err, roles) {
                 vmProfile.roles = roles;
             });
-            db.getRoles(user.id, function (err, roles) {
+            sendAndListen('get roles', {token: auth.token, user_id: user.id}, function (err, roles) {
                 vmProfile.userRoles = [];
                 for (i=0; i<roles.length; i++)
                     vmProfile.userRoles.push(JSON.stringify(roles[i].id));
             });
-            db.getLocations(user.id, function (err, locations) {
+            sendAndListen('get locations', {token: auth.token, user_id: user.id}, function (err, locations) {
                 vmProfile.locations = locations;
             });
         },
         editRoles: function () {
             var self = this;
-            db.editRolesAsAdmin(self.currentUser, self.userRoles);
+            var data = {
+                token: auth.token,
+                user_id: this.currentUser,
+                role_ids: this.userRoles
+            };
+            sendAndListen('edit roles', data);
         },
         getItems: function (location) {
             this.currentLocation = location.id;
             this.items = [];
-            db.getItems(location.id, function (err, items) {
+            var data = {
+                token: auth.token, 
+                user_id: this.currentUser, 
+                location_id: location.id
+            };
+            sendAndListen('get items', data, function (err, items) {
                 vmProfile.items = items;
             });
         },
         editUser: function (user) {
-            db.editUserAsAdmin(user.id, user.newName, user.password);
+            var data = {
+                token: auth.token,
+                user_id: user.id,
+                name: user.newName,
+                password: user.password
+            };
+            sendAndListen('edit user', data);
         },
         deleteUser: function (user) {
             var users = this.users;
-            db.deleteUserAsAdmin(user.id, function (err, result) {
+            var index;
+
+            function deleteUser() {
+                for (i=0; i<users.length; i++) {
+                    if (users[i].id == user.id) {
+                        index = i;
+                        users.splice(i, 1);
+                    }
+                }
+            }
+
+            function addUser() {
+                users.splice(index, 0, user);
+            }
+
+            deleteUser();
+            sendAndListen('delete user', {token: auth.token, user_id: user.id}, function (err, result) {
                 if (err) {
                     notie.alert(3, 'Deletion of user failed!', 2);
+                    addUser();
                 } else {
-                    for (i=0; i<users.length; i++) {
-                        if (users[i].id == user.id) {
-                            users.splice(i, 1);
-                        }
-                    }
                     notie.alert(1, 'User deleted!', 2);
                 }
             });
@@ -106,63 +149,80 @@ var vmProfile = new Vue({
         addUser: function () {
             var user = {id: 0, name: this.username};
             this.users.push(user);
-            db.addUser(this.username, this.password, function (err, user_id) {
+            sendAndListen('register user', { username: this.username, password: this.password}, function (err, user_id) {
                 user.id = user_id;
                 notie.alert(1, 'User added!', 2);
             });
         },
         editLocation: function (location) {
-            db.editLocationAsAdmin(location);
+            var data = {
+                token: auth.token, 
+                user_id: this.currentUser, 
+                location: location
+            };
+            sendAndListen('edit location', data);
         },
         deleteLocation: function (location) {
-            db.deleteLocationAsAdmin(location.id);
+            var data = {
+                token: auth.token, 
+                user_id: this.currentUser, 
+                location_id: location.id
+            };
+            sendAndListen('delete location', data);
         },
         addLocation: function () {
-            var location = {
-                name: self.locationname,
-                latitude: self.latitude,
-                longitude: self.longitude
-            };
-            db.addLocationAsAdmin(this.currentUser, location);
+            var data = {
+                token: auth.token,
+                user_id: this.currentUser,
+                location: {
+                    name: this.locationname,
+                    latitude: this.latitude,
+                    longitude: this.longitude
+                }
+            }
+            sendAndListen('add location', data);
             this.locations.push(location);
         },
         editItem: function (item) {
-            db.editItemAdAdmin(item);
+            sendAndListen('edit item', {token: auth.token, user_id: this.currentUser, item: item});
         },
         deleteItem: function (item) {
-            db.deleteItemAdAdmin(item.id);
+            sendAndListen('delete item', {token: auth.token, user_id: this.currentUser, id: item.id});
         },
         addItem: function () {
-            var item = {
-                name: self.itemname,
-                description: self.itemdescription,
-                price: self.itemprice
+            var data = {
+                token: auth.token,
+                user_id: this.currentUser,
+                location_id: this.currentLocation,
+                item: {
+                    name: this.itemname,
+                    description: this.itemdescription,
+                    price: this.itemprice
+                }
             };
-            db.addItemAsAdmin(this.currentUser, this.currentLocation, item);
+            sendAndListen('add item', data);
             this.items.push(item);
         }
     }
 });
 
-// get roles from server
-socket.on('roles', function (data) {
-    var err = data.err;
-    var roles = data.result;
-    for (var i = 0; i < roles.length; i++) {
-        console.log('login roles');
-        console.log(roles);
-        if (roles[i].role == 'admin') {
-            vmProfile.showAdmin = true;
-            db.getUsers(function (err, users) {
-                vmProfile.users = [];
-                for (i=0; i<users.length; i++)
-                    vmProfile.users.push({id: users[i].id, name: users[i].name, newUsername: '', newPassword: ''});
-            })
-        } else if (roles[i].role == 'user') {
-            db.getUserdata(function (err, userdata) {
-                console.log('userdata: ');
-                console.log(userdata);
-            });
+auth.handleRole = function (role) {
+    console.log(role);
+    if (role == 'admin') {
+        vmProfile.showUI.admin = true;
+        auth.userLoggedOut = function() {
+            vmProfile.showUI.admin = false;
         }
+        sendAndListen('get all users', {token: auth.token}, function (err, users) {
+            if (err) console.log('Err: ' + users);
+            vmProfile.users = [];
+            for (i=0; i<users.length; i++)
+                vmProfile.users.push({id: users[i].id, name: users[i].name, newUsername: '', newPassword: ''});
+        })
+    } else if (role == 'user') {
+        sendAndListen('get userdata', {token: auth.token, user_id: auth.user_id}, function (err, userdata) {
+            console.log('userdata: ');
+            console.log(userdata);
+        });
     }
-});
+}

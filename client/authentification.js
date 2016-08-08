@@ -2,6 +2,10 @@ var auth = {}
 
 function initAuth(self) {
     self.vm = {};
+    self.user_id = '';
+    self.token = '';
+    self.userLoggedIn = null;
+    self.userLoggedOut = null;
 
     function loginOk() {
         self.vm.status = 'logged in';
@@ -40,20 +44,33 @@ function initAuth(self) {
     }
 
     self.loginUser = function (data) {
-        console.log('data: ' + data);
-        if (data.err == 0) loginOk();
-        else if (data.result == 'unknown user') unknownUser();
-        else if (data.result == 'wrong password') wrongPassword();
+        if (!data.err) {
+            self.user_id = data.result;
+            loginOk();
+            if (self.userLoggedIn !== null)
+                self.userLoggedIn();
+        }
+        else if (data.result === 'unknown user') unknownUser();
+        else if (data.result === 'wrong password') wrongPassword();
     }
 
     self.registerUser = function (data) {
-        console.log('data: ' + data);
-        if (data.err == 0) loginOk();
+        if (!data.err) {
+            self.user_id = data.result;
+            loginOk();
+            if (self.userLoggedIn !== null)
+                self.userLoggedIn();
+        }
         else if (data.result == 'username assigned') usernameAssigned();
     }
 
     self.loginToken = function (data) {
-        if (data.err == 0) loginOk();
+        if (!data.err) {
+            self.user_id = data.result;
+            loginOk();
+            if (self.userLoggedIn !== null)
+                self.userLoggedIn();
+        }
         else if (data.result == 'token invalid') tokenInvalid();
         else wrongToken();
     }
@@ -64,26 +81,35 @@ function initAuth(self) {
     }
 
     self.storeToken = function (data) {
-        var err = data.err;
-        var token = data.result;
-        db.addToken(token);
-        console.log('store token');
-        socket.removeListener('store token', self.storeToken);
+        if (!data.err) {
+            self.token = data.result;
+            db.addToken(data.result);
+            socket.removeListener('store token', self.storeToken);
+        }
+    }
+
+    function loginClicked() {
+        socket.emit('login user', { username: self.vm.username, password: self.vm.password });
+        self.vm.status = 'try logging in';
+        self.vm.loginButtonValue = 'Please Wait';
+    }
+
+    function logoutClicked() {
+        socket.emit('logout user', { username: self.vm.username });
+        self.vm.status = 'logged out';
+        db.deleteToken();
+        self.vm.loginButtonValue = 'Login';
+        self.vm.showForm = self.vm;
+        socket.on('store token', self.storeToken);
+        if (self.userLoggedOut !== null)
+            self.userLoggedOut();
     }
 
     self.login = function () {
-        if (self.vm.loginButtonValue == 'Login') {
-            socket.emit('login user', { username: self.vm.username, password: self.vm.password });
-            self.vm.status = 'try logging in';
-            self.vm.loginButtonValue = 'Please Wait';
-        } else {
-            socket.emit('logout user', { username: self.vm.username });
-            self.vm.status = 'logged out';
-            db.deleteToken();
-            self.vm.loginButtonValue = 'Login';
-            self.vm.showForm = self.vm;
-            socket.on('store token', self.storeToken);
-        }
+        if (self.vm.loginButtonValue == 'Login')
+            loginClicked();
+        else
+            logoutClicked();
     }
 
     self.register = function () {
@@ -94,6 +120,15 @@ function initAuth(self) {
     socket.on('register user', self.registerUser);
     socket.on('login token', self.loginToken);
     socket.on('store token', self.storeToken);
+
+    socket.on('roles', function (data) {
+        if (!data.err) {
+            for (var i = 0; i < data.result.length; i++) {
+                if (auth.handleRole !== null)
+                    auth.handleRole(data.result[i].role);
+            }
+        }
+    });
     
     db.getToken(auth.getToken);
 }
