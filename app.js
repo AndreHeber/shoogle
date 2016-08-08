@@ -10,7 +10,6 @@ var cc = require('./server/commandChains')(io, pool, logger, auth);
 var search = require('./server/search')(io, pool, logger, auth, cc);
 var admin = require('./server/admin')(io, pool, logger, auth, cc);
 
-
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname+'/client.html'));
 });

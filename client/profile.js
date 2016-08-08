@@ -1,7 +1,3 @@
-function saveLocation() {
-    socket.emit('')
-}
-
 function log(err, result) {
     console.log(err);
     console.log(result);
@@ -17,6 +13,36 @@ function sendAndListen(channel, data, callback) {
         socket.on(channel, call_back);
     }
 }
+
+function emit(chain) {
+    chain.nowRun();
+    sendAndListen(chain.command, chain.data, function (err, result) {
+        if (err) {
+            chain.onError(err, result);
+            log(err, result);
+        } else {
+            chain.onSuccess(result);
+        }
+    });
+}
+
+function nothing() {}
+function showProblem(message) { notie.alert(3, message, 2); }
+function showInfo(message) { notie.alert(1, message, 2); }
+
+var toggleConnectionProblemMessage = false;
+socket.on('reconnect_attempt', function () {
+    if (toggleConnectionProblemMessage === false) {
+        showProblem('Connection problems!');
+        toggleConnectionProblemMessage = true;
+    }
+});
+socket.on('connect', function () {
+    if (toggleConnectionProblemMessage === true) {
+        showInfo('Reconnected!');
+        toggleConnectionProblemMessage = false;
+    }
+});
 
 var vmProfile = new Vue({
     el: '#profile',
@@ -47,27 +73,25 @@ var vmProfile = new Vue({
     methods: {
         setLocation: function () {
             var self = this;
-            db.getToken(function (err, token) {
-                if (err) self.status = 'You must be logged in!';
-                else {
-                    self.status = 'Save Location';
-                    map.addMarker(function(marker) {
-                        var data = {
-                            token: auth.token,
-                            user_id: auth.user_id,
-                            location: {
-                                name: marker.name,
-                                latitude: marker.getPosition().lat(),
-                                longitude: marker.getPosition().lng()
-                            }
+            if (!auth.user_id) self.status = 'You must be logged in!';
+            else {
+                self.status = 'Save Location';
+                map.addMarker(function(marker) {
+                    var data = {
+                        token: auth.token,
+                        user_id: auth.user_id,
+                        location: {
+                            name: marker.name,
+                            latitude: marker.getPosition().lat(),
+                            longitude: marker.getPosition().lng()
                         }
-                        sendAndListen('add location', data, function (err, data) {
-                            console.log('location id:');
-                            console.log(data);
-                        });
+                    }
+                    sendAndListen('add location', data, function (err, data) {
+                        console.log('location id:');
+                        console.log(data);
                     });
-                }
-            });
+                });
+            }
         },
         setGeolocation: function () {
             map.setGeolocationPosition();
@@ -90,24 +114,24 @@ var vmProfile = new Vue({
             });
         },
         editRoles: function () {
-            var self = this;
-            var data = {
-                token: auth.token,
-                user_id: this.currentUser,
-                role_ids: this.userRoles
-            };
-            sendAndListen('edit roles', data);
+            emit({
+                command: 'edit roles',
+                data: { token: auth.token, user_id: this.currentUser, role_ids: this.userRoles },
+                nowRun: nothing,
+                onSuccess: function () { showInfo('Roles saved'); },
+                onError: function () { showProblem("Couldn't save roles!"); }
+            });
         },
         getItems: function (location) {
-            this.currentLocation = location.id;
-            this.items = [];
-            var data = {
-                token: auth.token, 
-                user_id: this.currentUser, 
-                location_id: location.id
-            };
-            sendAndListen('get items', data, function (err, items) {
-                vmProfile.items = items;
+            emit({
+                command: 'get items',
+                data: { token: auth.token, user_id: this.currentUser, location_id: location.id },
+                nowRun: function () {
+                    this.currentLocation = location.id;
+                    this.items = [];
+                }.bind(this),
+                onSuccess: function () { vmProfile.items = items; },
+                onError: function () { showProblem("Couldn't save roles!"); }
             });
         },
         editUser: function (user) {
@@ -139,19 +163,28 @@ var vmProfile = new Vue({
             deleteUser();
             sendAndListen('delete user', {token: auth.token, user_id: user.id}, function (err, result) {
                 if (err) {
-                    notie.alert(3, 'Deletion of user failed!', 2);
+                    showProblem('Deletion of user failed!');
                     addUser();
                 } else {
-                    notie.alert(1, 'User deleted!', 2);
+                    showInfo('User deleted!');
                 }
             });
         },
         addUser: function () {
             var user = {id: 0, name: this.username};
-            this.users.push(user);
-            sendAndListen('register user', { username: this.username, password: this.password}, function (err, user_id) {
-                user.id = user_id;
-                notie.alert(1, 'User added!', 2);
+
+            emit({
+                command: 'register user',
+                data: {username: this.username, password: this.password},
+                nowRun: function () { this.users.push(user); }.bind(this),
+                onSuccess: function (user_id) {
+                    user.id = user_id;
+                    showInfo('User added!');
+                },
+                onError: function (err, result) {
+                    showProblem("Couldn't register user!");
+                    log(err, result);
+                }
             });
         },
         editLocation: function (location) {
@@ -207,7 +240,6 @@ var vmProfile = new Vue({
 });
 
 auth.handleRole = function (role) {
-    console.log(role);
     if (role == 'admin') {
         vmProfile.showUI.admin = true;
         auth.userLoggedOut = function() {
