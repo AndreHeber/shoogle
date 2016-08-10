@@ -84,7 +84,7 @@ module.exports = function (io, db, logger, auth, commandChains) {
             var sql = 'insert into locations (user_id, locationname, latitude, longitude) values ($1, $2, $3, $4) returning location_id;' 
             db.query(sql, [data.user_id, data.location.name, data.location.latitude, data.location.longitude], next);
         },
-        prepareDataForTransmit: (result, next) => { next(null, result.rows[0]); }
+        prepareDataForTransmit: (result, next) => { next(null, result.rows[0].location_id); }
     });
 
     commandChains.add({
@@ -98,7 +98,7 @@ module.exports = function (io, db, logger, auth, commandChains) {
                         "($1, $2, $3, $4, $5, setweight(to_tsvector('english', $3), 'B') || to_tsvector('english', $4)) returning item_id;";
             db.query(sql, [data.user_id, data.location_id, data.item.name, data.item.description, data.item.price], next);
         },
-        prepareDataForTransmit: (result, next) => { next(null, result.rows[0]); }
+        prepareDataForTransmit: (result, next) => { next(null, result.rows[0].item_id); }
     });
 
     commandChains.add({
