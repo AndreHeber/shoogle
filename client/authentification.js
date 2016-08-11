@@ -101,6 +101,8 @@ function initAuth(self) {
         self.vm.loginButtonValue = 'Login';
         self.vm.showForm = self.vm;
         socket.on('store token', self.storeToken);
+        self.token = '';
+        self.user_id = '';
         if (self.userLoggedOut !== null)
             self.userLoggedOut();
     }

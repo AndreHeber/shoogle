@@ -73,8 +73,9 @@ module.exports = function (io, db, logger) {
         }
 
         function getAndSendUserRoles(user_id, db, dbCon, callback) {
-            db.getUserRoles(user_id, dbCon, function (err, roles) {
-                socket.emit('roles', {err: err, result: roles});
+            db.getUserRoles(user_id, dbCon, function (err, result) {
+                socket.emit('roles', {err: err, result: result});
+                callback(err, result);
             });
         }
 
@@ -158,9 +159,15 @@ module.exports = function (io, db, logger) {
                 userExistsInDb,
                 (_user_id, cb) => { user_id = _user_id; db.getPassword(_user_id, dbConnection, cb); },
                 comparePasswords,
-                (cb) => { generateToken(user_id, cb); },
-                (hashedToken, cb) => { db.storeToken(user_id, hashedToken, dbConnection, cb); },
-                (cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
+                (cb) => {
+                    generateToken(user_id, cb);
+                },
+                (hashedToken, cb) => {
+                    db.storeToken(user_id, hashedToken, dbConnection, cb);
+                },
+                (stored, cb) => {
+                    getAndSendUserRoles(user_id, db, dbConnection, cb);
+                }
             ], (err, login) => {
                 dbDone();
                 if (err == 'user not exists') err = '';
@@ -200,7 +207,7 @@ module.exports = function (io, db, logger) {
                 compareTokens,
                 (cb) => { generateToken(user_id, cb); },
                 (hashedToken, cb) => { db.storeToken(user_id, hashedToken, dbConnection, cb); },
-                (cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
+                (stored, cb) => { getAndSendUserRoles(user_id, db, dbConnection, cb); }
             ], (err, login) => {
                 dbDone();
                 if (err == 'token invalid') err = '';
@@ -257,12 +264,7 @@ module.exports = function (io, db, logger) {
                 compareTokens
             ], function (err, result) {
                 if (dbDone) dbDone();
-                if (err == 'token mismatch') err = '';
-                else if (err == 'token not found') {
-                    logger.log('warn', err);
-                    socket.emit('login token', {err: 1, result: 'token invalid'});
-                    err = '';
-                } else if (err) throw err;
+                if (err) logger.log('warn', err);
                 else error = '';
                 callback(error, user);
             });

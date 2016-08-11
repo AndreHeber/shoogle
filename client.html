@@ -98,8 +98,10 @@
                 <div id="profile">
                     <button v-on:click.prevent="setLocation" class="btn btn-default" style="margin-top: 10px;">{{btnText}}</button>
                     <button v-on:click.prevent="setGeolocation" class="btn btn-default" style="margin-top: 10px;">Set Current Position</button>                    {{status}}
+                </div>
 
-                    <template v-if="showUI.admin">
+                <div id="admin-panel">
+                    <template v-if="showUI">
                         
                         <div class="container" style="width: 70%; height: 500; z-index: 10; position: fixed; top: 50px; left: 400px; background-color: rgba(250, 250, 250, 1.0);">
                             <h2>Admin Panel</h2>
@@ -226,10 +228,12 @@
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=map.initMap"></script>
     
     <script src="/client/client.js"></script>
+    <script src="/client/utils.js"></script>
     <script src="/client/database.js"></script>
     <script src="/client/authentification.js"></script>
     <script src="/client/gmaps.js"></script>
     <script src="/client/search.js"></script>
+    <script src="/client/admin-panel.js"></script>
     <script src="/client/profile.js"></script>
     <!-- 
         <script src="/client/video.js"></script>

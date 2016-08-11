@@ -21,3 +21,18 @@ var vm = new Vue({
 socket.on('broadcast message', function(message) {
   vm.messages.push({text: message});
 });
+
+// show info 'connection problems' and 'reconnected' to user 
+var toggleConnectionProblemMessage = false;
+socket.on('reconnect_attempt', function () {
+    if (toggleConnectionProblemMessage === false) {
+        showProblem('Connection problems!');
+        toggleConnectionProblemMessage = true;
+    }
+});
+socket.on('connect', function () {
+    if (toggleConnectionProblemMessage === true) {
+        showInfo('Reconnected!');
+        toggleConnectionProblemMessage = false;
+    }
+});
