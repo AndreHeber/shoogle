@@ -43,6 +43,8 @@
 <body>
     <div id="map" style="height: 100%; z-index: 0; position: fixed;"></div>
 
+    <div id="app" style="width: 100%; height: 500px; z-index: 20; position: fixed; top: 0; left: 0; background-color: #0a6ebd; "></div>
+
     <div class="container" style="width: 100%; height: 0; z-index: 10; position: fixed; top: 0; left: 0; ">
 
         <!--
@@ -225,6 +227,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/1.4.1/dexie.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/notie/3.9.1/notie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.js"></script>
+    <script src="https://rawgit.com/cyclejs/cycle-core/v6.0.3/dist/cycle.js"></script>
+    <script src="https://rawgit.com/cyclejs/cycle-dom/v9.4.0/dist/cycle-dom.js"></script>
+    <script src="https://rawgit.com/cyclejs/isolate/v1.1.1/dist/cycle-isolate.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMIRteB2PhHLOd_5X6HFFH9xW1HeORqVo&callback=map.initMap"></script>
     
     <script src="/client/client.js"></script>
@@ -235,6 +241,7 @@
     <script src="/client/search.js"></script>
     <script src="/client/admin-panel.js"></script>
     <script src="/client/profile.js"></script>
+    <script src="/client/search2.js"></script>
     <!-- 
         <script src="/client/video.js"></script>
         <script src="https://simplewebrtc.com/latest-v2.js"></script> 
